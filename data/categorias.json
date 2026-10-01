@@ -1,0 +1,11 @@
+[
+  { "id": "fraldas-geriatricas", "nome": "Fraldas geriátricas" },
+  { "id": "higiene-pessoal", "nome": "Higiene pessoal" },
+  { "id": "cuidados-para-idosos", "nome": "Cuidados para idosos" },
+  { "id": "absorventes", "nome": "Absorventes" },
+  { "id": "lencos", "nome": "Lenços" },
+  { "id": "luvas", "nome": "Luvas" },
+  { "id": "protetores", "nome": "Protetores" },
+  { "id": "fraldas-infantis", "nome": "Fraldas infantis" },
+  { "id": "outros", "nome": "Outros" }
+]

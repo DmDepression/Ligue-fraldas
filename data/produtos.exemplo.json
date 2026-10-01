@@ -1,0 +1,29 @@
+[
+  {
+    "id": "exemplo-fralda-geriatrica",
+    "nome": "EXEMPLO — Nome do produto",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Nome da marca",
+    "descricao": "Texto descrevendo o produto. Este arquivo é só um modelo e NÃO aparece no site.",
+    "tamanho": ["P", "M", "G", "XG"],
+    "imagem": "img/produtos/exemplo-fralda-geriatrica.jpg",
+    "imagens": ["img/produtos/exemplo-fralda-geriatrica-verso.jpg"],
+    "variacoes": [
+      { "nome": "Embalagem", "opcoes": ["Pacote com 8", "Pacote com 16"] }
+    ],
+    "informacoes": [
+      { "rotulo": "Indicação", "valor": "Texto da informação" },
+      { "rotulo": "Quantidade", "valor": "Texto da informação" }
+    ],
+    "palavrasChave": ["termo alternativo de busca"],
+    "destaque": true,
+    "ordem": 1,
+    "criadoEm": "2026-10-01",
+    "ativo": true
+  },
+  {
+    "id": "exemplo-produto-simples",
+    "nome": "EXEMPLO — Produto com o mínimo de campos",
+    "categoria": "higiene-pessoal"
+  }
+]

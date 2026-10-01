@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- Gera os ícones do site a partir do logotipo. Veja ferramentas/gerar-imagens.ps1 -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 100vw; height: 100vh; background: transparent; }
+  body { display: grid; place-items: center; }
+  body.branco { background: #fff; }
+  img { width: calc(100vw - 2 * var(--margem, 0px)); height: auto; display: block; }
+</style>
+</head>
+<body>
+<img src="../img/logo.svg" alt="">
+<script>
+  var p = new URLSearchParams(location.search);
+  if (p.get('fundo') === 'branco') document.body.className = 'branco';
+  document.documentElement.style.setProperty('--margem', (p.get('margem') || 0) + 'px');
+</script>
+</body>
+</html>

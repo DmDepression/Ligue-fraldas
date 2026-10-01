@@ -1,0 +1,14 @@
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+
+# Dependências (caso alguma ferramenta seja adicionada no futuro)
+node_modules/
+
+# Configurações pessoais do Claude Code (o launch.json é do projeto e fica no repositório)
+.claude/settings.local.json

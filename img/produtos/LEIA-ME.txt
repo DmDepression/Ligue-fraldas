@@ -1,0 +1,6 @@
+Coloque aqui as fotos dos produtos.
+
+Dicas:
+- Use JPG ou WEBP, de preferência quadradas (ex.: 800 x 800 px), com fundo branco.
+- Nomeie o arquivo com o id do produto (ex.: fralda-geriatrica-marca-g.jpg).
+- No data/produtos.json, informe o caminho: "imagem": "img/produtos/fralda-geriatrica-marca-g.jpg"
