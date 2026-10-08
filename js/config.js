@@ -24,18 +24,15 @@ window.LIGUE_CONFIG = {
     { numero: '+552125761617', exibicao: '(21) 2576-1617' }
   ],
 
-  // Quando o Instagram existir, preencha os dois campos. Ex.:
-  //   url: 'https://www.instagram.com/nomedaloja/', usuario: '@nomedaloja'
-  // Enquanto estiver vazio, o site mostra "Instagram em breve".
+  // Perfil oficial da loja.
   instagram: {
-    url: '',
-    usuario: ''
+    url: 'https://www.instagram.com/liguefraldas/',
+    usuario: '@liguefraldas'
   },
 
   catalogo: {
     produtos: 'data/produtos.json',
     categorias: 'data/categorias.json',
-    porPagina: 24,         // produtos por "página" no catálogo (botão "Carregar mais")
-    destaquesNoInicio: 8   // quantos produtos aparecem na página inicial
+    porPagina: 24         // produtos por "página" no catálogo (botão "Carregar mais")
   }
 };

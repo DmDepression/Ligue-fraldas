@@ -48,14 +48,17 @@
             '<h1 class="produto__nome">' + esc(p.nome) + '</h1>' +
             (p.marca ? '<p class="produto__marca">Marca: <strong>' + esc(p.marca) + '</strong></p>' : '') +
             descricao(p.descricao) +
+            (p.precoCentavos ? '<p class="produto-preco produto-preco--grande">' + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
             opcoes(p) +
             '<div class="produto__cta">' +
+              (p.precoCentavos ? '<button type="button" class="btn btn--primario btn--grande btn--bloco" data-produto-adicionar>' +
+                L.icone('sacola') + '<span>Adicionar ao carrinho</span></button><p class="produto__dica" role="status" data-compra-aviso></p>' : '') +
               '<a class="btn btn--wa btn--grande btn--bloco" href="#" data-produto-whatsapp target="_blank" rel="noopener">' +
                 L.icone('whatsapp') + '<span>Consultar pelo WhatsApp</span></a>' +
               '<a class="btn btn--contorno btn--grande btn--bloco" href="' + L.linkTelefone(0) + '">' +
                 L.icone('telefone') + '<span>Ligar para a loja</span></a>' +
               '<p class="produto__nota">' + L.icone('info') +
-                '<span>Valores e disponibilidade são informados pela loja no atendimento.</span></p>' +
+                '<span>Disponibilidade, entrega e pagamento são confirmados pela loja no atendimento.</span></p>' +
             '</div>' +
             informacoes(p.informacoes) +
           '</div>' +
@@ -63,6 +66,7 @@
 
       ligarGaleria(p);
       ligarOpcoes(p);
+      ligarCompra(p);
       atualizarSeo(p, categoria);
       relacionados(p, catalogo, categoria, urlCategoria);
 
@@ -117,7 +121,7 @@
                 '<span>' + esc(o) + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
-        (algumaEscolha ? '<p class="produto__dica">Opcional: o que você escolher aqui já vai escrito na mensagem do WhatsApp.</p>' : '') +
+        (algumaEscolha ? '<p class="produto__dica">Escolha o tamanho e a quantidade de unidades por pacote antes de adicionar ao carrinho.</p>' : '') +
         '</form>';
     }
 
@@ -162,6 +166,30 @@
         form.addEventListener('submit', function (e) { e.preventDefault(); });
       }
       atualizar();
+    }
+
+    function ligarCompra(p) {
+      var barra = document.querySelector('[data-barra-produto]');
+      if (p.precoCentavos) {
+        barra.innerHTML = '<button type="button" class="btn btn--primario btn--bloco" data-produto-adicionar>' +
+          L.icone('sacola') + '<span>Adicionar ao carrinho</span></button>';
+      }
+      document.querySelectorAll('[data-produto-adicionar]').forEach(function (botao) {
+        botao.addEventListener('click', function () {
+          var selecionado = alvo.querySelector('input[data-grupo="Tamanho"]:checked');
+          var aviso = alvo.querySelector('[data-compra-aviso]');
+          if (!selecionado) {
+            aviso.textContent = 'Selecione um tamanho para adicionar este produto ao carrinho.';
+            var primeira = alvo.querySelector('input[data-grupo="Tamanho"]');
+            if (primeira) primeira.focus();
+            return;
+          }
+          aviso.textContent = '';
+          L.adicionarAoCarrinho(p.id, selecionado.value).catch(function () {
+            aviso.textContent = 'Não foi possível adicionar o produto. Tente novamente.';
+          });
+        });
+      });
     }
 
     function relacionados(p, catalogo, categoria, urlCategoria) {

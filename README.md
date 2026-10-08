@@ -2,7 +2,8 @@
 
 Vitrine online da **Ligue Fraldas Geriátricas** (Vila Isabel, Rio de Janeiro).
 O site mostra o catálogo de produtos e leva o cliente direto para o **WhatsApp**, o **telefone** ou a **loja física**.
-Não há carrinho, checkout, pagamento nem cadastro: a venda continua sendo feita pela loja.
+O cliente monta um carrinho por tamanho e quantidade de pacotes e finaliza pelo WhatsApp, com itens,
+subtotais e total na mensagem. A loja confirma disponibilidade, entrega e pagamento. Não há pagamento online nem cadastro.
 
 É um site estático (HTML, CSS e JavaScript puros, sem etapa de build). Os produtos ficam num arquivo de dados
 (`data/produtos.json`) e as páginas são montadas automaticamente a partir dele. Para incluir produtos, basta editar
@@ -11,17 +12,17 @@ esse arquivo. Não é preciso mexer no HTML nem "reconstruir" o site.
 ## Estrutura
 
 ```
-index.html              Página inicial: destaque, produtos, contato, localização, sobre
+index.html              Página inicial: apresentação, acesso ao catálogo, contato, localização, sobre
 catalogo.html           Catálogo: busca, filtro por categoria e marca, ordenação
 produto.html            Página do produto (produto.html?id=<id-do-produto>)
 404.html                Página de "não encontrada"
 css/estilo.css          Todo o visual (mobile-first)
 js/config.js            Contatos, Instagram e ajustes do catálogo  ← editar aqui
 js/nucleo.js            Funções comuns: carrega os dados, monta os cards, links de WhatsApp
-js/inicio.js            Lógica da página inicial
+js/carrinho.js          Carrinho persistente no navegador e resumo do pedido pelo WhatsApp
 js/catalogo.js          Lógica do catálogo
 js/produto.js           Lógica da página do produto
-data/produtos.json      Lista de produtos (começa vazia: [])  ← editar aqui
+data/produtos.json      Produtos, tamanhos, embalagens e preços  ← editar aqui
 data/categorias.json    Lista de categorias
 data/produtos.exemplo.json   Modelo com todos os campos (não aparece no site)
 img/logo.svg            Logotipo (recortado do arquivo original)
@@ -73,17 +74,21 @@ Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados p
 | `marca` | não | Aparece no card, na busca e no filtro de marcas |
 | `descricao` | não | Texto da página do produto. Uma linha em branco inicia um novo parágrafo |
 | `tamanho` | não | `"G"` ou uma lista `["P", "M", "G"]`. O cliente pode escolher, e a escolha vai na mensagem do WhatsApp |
+| `precoCentavos` | para o carrinho | Preço inteiro em centavos por pacote: `5490` significa R$ 54,90. Mesmo preço para todos os tamanhos do produto |
 | `imagem` | não | Foto principal. Sem foto, aparece o quadro "Imagem em breve" |
 | `imagens` | não | Fotos extras (galeria da página do produto) |
 | `variacoes` | não | Grupos de opções, como embalagem ou modelo. A escolha também vai na mensagem |
 | `informacoes` | não | Tabela "Informações do produto" (`rotulo` e `valor`) |
 | `palavrasChave` | não | Termos extras para a busca encontrar o produto |
-| `destaque` | não | `true` coloca o produto primeiro e na página inicial |
+| `destaque` | não | `true` prioriza o produto na ordenação por destaques do catálogo |
 | `ordem` | não | Número para definir a ordem manualmente (menor aparece antes) |
 | `criadoEm` | não | Data `"AAAA-MM-DD"`, usada na ordenação "Mais recentes" |
 | `ativo` | não | `false` esconde o produto sem apagá-lo |
 
 Dicas:
+- **Tamanhos e embalagens:** use opções como `"M — 24 unidades"` para que o cliente veja e envie a embalagem correta. Cada tamanho fica separado no carrinho.
+- **Carrinho:** permite 1 a 99 pacotes por opção, calcula em centavos e salva apenas produto, tamanho e quantidade no navegador. Ao recarregar, preços e opções são conferidos no catálogo atual. Se o navegador bloquear o armazenamento, funciona durante a página atual.
+- **Finalização:** o cliente informa seu nome no carrinho. Abre o WhatsApp com “Oi, me chamo [nome]! Gostaria dos seguintes itens:”, seguida dos itens, quantidades, subtotais, total e “Por gentileza.”. O nome não é salvo no navegador. O cliente envia a mensagem no WhatsApp. O carrinho é mantido, pois abrir o aplicativo não confirma o envio. E-mail ainda não está configurado.
 - **Fotos:** quadradas (por exemplo 800 × 800 px), fundo branco, em `img/produtos/`.
 - **Erros comuns em JSON:** vírgula sobrando depois do último item, aspas faltando. Se o catálogo parar de aparecer,
   cole o arquivo em um validador de JSON. O console do navegador também avisa sobre produtos sem `id` ou `nome`
@@ -102,9 +107,8 @@ categoria nova, adicione `{ "id": "nova-categoria", "nome": "Nova categoria" }` 
 Os dados de contato ficam em `js/config.js`. Eles também estão escritos no HTML, para o Google e para quem navega sem
 JavaScript. Ao trocar um telefone, procure o número antigo nos arquivos `.html` e troque lá também.
 
-**Instagram:** quando a conta existir, preencha `instagram.url` e `instagram.usuario` em `js/config.js`. O cartão
-"Instagram em breve" e o item do rodapé viram links automaticamente. Também vale incluir a URL em `"sameAs": ["..."]`
-no bloco de dados estruturados do `index.html`.
+**Instagram:** o perfil `@liguefraldas` está configurado em `js/config.js`, no cartão de contato, nos rodapés e
+em `sameAs` nos dados estruturados da página inicial. Ao trocar o perfil, atualize também os links no HTML.
 
 ## Antes de publicar
 

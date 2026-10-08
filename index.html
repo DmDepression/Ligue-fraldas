@@ -15,7 +15,7 @@
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Ligue Fraldas Geriátricas">
   <meta property="og:title" content="Ligue Fraldas Geriátricas – Vila Isabel, Rio de Janeiro">
-  <meta property="og:description" content="Fraldas, higiene e cuidados para toda a família. Consulte nossos produtos pelo WhatsApp (21) 99892-8742.">
+  <meta property="og:description" content="Fraldas, higiene e cuidados para quem você ama. Consulte nossos produtos pelo WhatsApp (21) 99892-8742.">
   <meta property="og:url" content="https://www.SEU-DOMINIO.com.br/">
   <meta property="og:image" content="https://www.SEU-DOMINIO.com.br/img/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -36,7 +36,7 @@
   <script>document.documentElement.classList.add('js');</script>
   <script src="js/config.js" defer></script>
   <script src="js/nucleo.js" defer></script>
-  <script src="js/inicio.js" defer></script>
+  <script src="js/carrinho.js" defer></script>
 
   <script type="application/ld+json">
   {
@@ -44,6 +44,7 @@
     "@graph": [
       {
         "@type": "Store",
+        "sameAs": ["https://www.instagram.com/liguefraldas/"],
         "@id": "https://www.SEU-DOMINIO.com.br/#loja",
         "name": "Ligue Fraldas Geriátricas",
         "legalName": "Comércio Varejista de Produtos de Higiene Pessoal LTDA - ME",
@@ -130,6 +131,7 @@
       </nav>
 
       <div class="cabecalho__acoes">
+        <button class="icone-btn carrinho-botao" type="button" data-carrinho-abrir aria-label="Abrir carrinho" aria-haspopup="dialog" aria-controls="carrinho"><svg class="icone" aria-hidden="true"><use href="#i-sacola"></use></svg><span class="carrinho-botao__contagem" data-carrinho-contagem>0</span></button>
         <a class="icone-btn" href="catalogo.html#busca" aria-label="Buscar produtos"><svg class="icone" aria-hidden="true"><use href="#i-busca"></use></svg></a>
         <a class="btn btn--wa btn--sm cabecalho__wa" href="https://wa.me/5521998928742" data-whatsapp target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg><span>(21) 99892-8742</span></a>
         <button class="icone-btn menu-btn" type="button" data-menu-botao aria-controls="menu" aria-expanded="false" aria-label="Abrir menu"><svg class="icone" aria-hidden="true"><use href="#i-menu"></use></svg></button>
@@ -142,10 +144,10 @@
       <div class="container hero__in">
         <div class="hero__texto">
           <p class="hero__local"><svg class="icone" aria-hidden="true"><use href="#i-pin"></use></svg>Loja em Vila Isabel · Rio de Janeiro</p>
-          <h1 id="hero-titulo">Fraldas, higiene e cuidados para <span class="sublinhado">toda a família</span></h1>
-          <p class="hero__desc">Produtos de higiene e cuidados pessoais na Ligue Fraldas Geriátricas. Consulte pelo WhatsApp, ligue para a loja ou faça uma visita.</p>
+          <h1 id="hero-titulo">Fraldas, higiene e cuidados para <span class="sublinhado">quem você ama</span></h1>
+          <p class="hero__desc">Produtos para o cuidado e conforto dos idosos. Escolha os produtos, monte seu carrinho e faça seu pedido pelo WhatsApp.</p>
 
-          <form class="busca busca--hero" action="catalogo.html" role="search" data-requer-produtos hidden>
+          <form class="busca busca--hero" action="catalogo.html" role="search">
             <label class="sr-only" for="busca-hero">Buscar produtos</label>
             <svg class="icone busca__icone" aria-hidden="true"><use href="#i-busca"></use></svg>
             <input id="busca-hero" name="q" type="search" placeholder="Buscar produtos" autocomplete="off" enterkeyhint="search">
@@ -161,31 +163,6 @@
         <div class="hero__marca" aria-hidden="true">
           <img src="img/logo.svg" alt="" width="380" height="380">
         </div>
-      </div>
-    </section>
-
-    <section class="secao" id="produtos" aria-labelledby="produtos-titulo">
-      <div class="container">
-        <div class="secao__topo">
-          <div>
-            <h2 class="secao__titulo" id="produtos-titulo">Nossos produtos</h2>
-            <p class="secao__sub">Encontre o que precisa e consulte pelo WhatsApp.</p>
-          </div>
-          <a class="link-seta so-desktop" href="catalogo.html" data-requer-produtos hidden>Ver catálogo completo<svg class="icone" aria-hidden="true"><use href="#i-seta"></use></svg></a>
-        </div>
-
-        <ul class="chips" data-categorias-inicio aria-label="Categorias" hidden></ul>
-
-        <div class="grade-produtos grade-produtos--inicio" data-produtos-inicio aria-busy="true">
-          <noscript>
-            <div class="aviso">
-              <p class="aviso__titulo">Para ver os produtos, ative o JavaScript do navegador.</p>
-              <p>Você também pode consultar a loja pelo WhatsApp (21) 99892-8742 ou pelo telefone (21) 2258-8588.</p>
-            </div>
-          </noscript>
-        </div>
-
-        <a class="btn btn--primario btn--bloco so-mobile secao__mais" href="catalogo.html" data-requer-produtos hidden><span>Ver catálogo completo</span><svg class="icone" aria-hidden="true"><use href="#i-seta"></use></svg></a>
       </div>
     </section>
 
@@ -223,13 +200,13 @@
               <span class="contato-card__acao">Ligar agora</span>
             </span>
           </a>
-          <div class="contato-card contato-card--instagram" data-instagram>
+          <a class="contato-card contato-card--instagram" data-instagram href="https://www.instagram.com/liguefraldas/" target="_blank" rel="noopener">
             <span class="contato-card__icone"><svg class="icone" aria-hidden="true"><use href="#i-instagram"></use></svg></span>
             <span class="contato-card__texto">
               <span class="contato-card__rotulo">Instagram</span>
-              <span class="contato-card__valor" data-instagram-texto="{usuario}">Em breve</span>
+              <span class="contato-card__valor" data-instagram-texto="{usuario}">@liguefraldas</span>
             </span>
-          </div>
+          </a>
         </div>
       </div>
     </section>
@@ -304,7 +281,7 @@
           <li><a href="https://wa.me/5521998928742" data-whatsapp target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg>WhatsApp (21) 99892-8742</a></li>
           <li><a href="tel:+552122588588"><svg class="icone" aria-hidden="true"><use href="#i-telefone"></use></svg>(21) 2258-8588</a></li>
           <li><a href="tel:+552125761617"><svg class="icone" aria-hidden="true"><use href="#i-telefone"></use></svg>(21) 2576-1617</a></li>
-          <li><span class="rodape__instagram" data-instagram><svg class="icone" aria-hidden="true"><use href="#i-instagram"></use></svg><span data-instagram-texto="Instagram {usuario}">Instagram em breve</span></span></li>
+          <li><a class="rodape__instagram" data-instagram href="https://www.instagram.com/liguefraldas/" target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-instagram"></use></svg><span data-instagram-texto="Instagram {usuario}">Instagram @liguefraldas</span></a></li>
         </ul>
       </div>
 

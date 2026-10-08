@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "id": "higifral-confort",
+    "nome": "Fralda Higifral Confort",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Higifral",
+    "descricao": "A Fralda Geriátrica Higifral Confort é destinada a pessoas adultas com incontinência urinária. No tamanho M, é projetada para indivíduos com peso entre 40 kg e 70 kg e cintura ajustável entre 75 cm e 110 cm.",
+    "tamanho": ["M — 24 unidades", "G — 20 unidades", "XG — 18 unidades"],
+    "precoCentavos": 5490,
+    "imagem": "img/produtos/higifral-confort.jpg",
+    "informacoes": [
+      { "rotulo": "Tamanho M", "valor": "24 unidades · 40 a 70 kg · cintura de 75 a 110 cm" },
+      { "rotulo": "Tamanho G", "valor": "20 unidades" },
+      { "rotulo": "Tamanho XG", "valor": "18 unidades" }
+    ],
+    "destaque": true,
+    "ordem": 1
+  },
+  {
+    "id": "tena-slip-noturna",
+    "nome": "Fralda Tena Slip Noturna",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Tena",
+    "descricao": "A Fralda Geriátrica Tena Slip Noturna é indicada para incontinência urinária severa ou moderada intensa, com alta absorção e uso recomendado principalmente durante o período noturno.",
+    "tamanho": ["M — 24 unidades", "G — 24 unidades", "EG — 24 unidades"],
+    "precoCentavos": 9990,
+    "imagem": "img/produtos/tena-slip-noturna.jpg",
+    "informacoes": [
+      { "rotulo": "Tamanho M", "valor": "24 unidades · 40 a 70 kg · cintura de 73 a 126 cm" },
+      { "rotulo": "Tamanho G", "valor": "24 unidades" },
+      { "rotulo": "Tamanho EG", "valor": "24 unidades" }
+    ],
+    "destaque": true,
+    "ordem": 2
+  },
+  {
+    "id": "vida-nova-confort",
+    "nome": "Fralda Vida Nova Confort",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Vida Nova",
+    "descricao": "A Fralda Geriátrica Vida Nova Confort, no tamanho G, é projetada para indivíduos com peso entre 70 kg e 85 kg e cintura ajustável entre 100 cm e 145 cm.",
+    "tamanho": ["G — 30 unidades", "XG — 26 unidades"],
+    "precoCentavos": 6990,
+    "imagem": "img/produtos/vida-nova-confort.png",
+    "informacoes": [
+      { "rotulo": "Tamanho G", "valor": "30 unidades · 70 a 85 kg · cintura de 100 a 145 cm" },
+      { "rotulo": "Tamanho XG", "valor": "26 unidades" }
+    ],
+    "destaque": true,
+    "ordem": 3
+  }
+]

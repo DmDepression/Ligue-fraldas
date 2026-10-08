@@ -36,6 +36,10 @@
     return n + ' ' + (n === 1 ? singular : plural);
   };
 
+  L.moeda = function (centavos) {
+    return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
   /* ------------------------------------------------------------------ */
   /* Contato                                                             */
   /* ------------------------------------------------------------------ */
@@ -151,6 +155,7 @@
       categoria: texto(bruto.categoria) || 'outros',
       marca: texto(bruto.marca),
       descricao: texto(bruto.descricao),
+      precoCentavos: Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null,
       tamanhos: lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean),
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
@@ -320,8 +325,15 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           tamanhos +
+          (p.precoCentavos ? '<p class="produto-preco">' + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
+          (p.precoCentavos ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
+            '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
+            '<option value="">Escolha o tamanho</option>' + p.tamanhos.map(function (t) {
+              return '<option value="' + L.esc(t) + '">' + L.esc(t) + '</option>';
+            }).join('') + '</select></label>' +
+            '<button class="btn btn--primario btn--sm btn--bloco" type="submit">' + L.icone('sacola') + '<span>Adicionar ao carrinho</span></button></form>' : '') +
           '<a class="btn btn--wa btn--sm btn--bloco" href="' + L.esc(L.linkWhatsApp(L.mensagemProduto(p))) + '"' +
             ' target="_blank" rel="noopener" aria-label="Consultar pelo WhatsApp: ' + L.esc(p.nome) + '">' +
             L.icone('whatsapp') + '<span>Consultar pelo WhatsApp</span></a>' +

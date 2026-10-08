@@ -33,6 +33,7 @@
   <script>document.documentElement.classList.add('js');</script>
   <script src="js/config.js" defer></script>
   <script src="js/nucleo.js" defer></script>
+  <script src="js/carrinho.js" defer></script>
   <script src="js/catalogo.js" defer></script>
 
   <script type="application/ld+json">
@@ -96,6 +97,7 @@
       </nav>
 
       <div class="cabecalho__acoes">
+        <button class="icone-btn carrinho-botao" type="button" data-carrinho-abrir aria-label="Abrir carrinho" aria-haspopup="dialog" aria-controls="carrinho"><svg class="icone" aria-hidden="true"><use href="#i-sacola"></use></svg><span class="carrinho-botao__contagem" data-carrinho-contagem>0</span></button>
         <a class="icone-btn" href="#busca" aria-label="Buscar produtos" data-focar-busca><svg class="icone" aria-hidden="true"><use href="#i-busca"></use></svg></a>
         <a class="btn btn--wa btn--sm cabecalho__wa" href="https://wa.me/5521998928742" data-whatsapp target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg><span>(21) 99892-8742</span></a>
         <button class="icone-btn menu-btn" type="button" data-menu-botao aria-controls="menu" aria-expanded="false" aria-label="Abrir menu"><svg class="icone" aria-hidden="true"><use href="#i-menu"></use></svg></button>
@@ -206,7 +208,7 @@
           <li><a href="https://wa.me/5521998928742" data-whatsapp target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg>WhatsApp (21) 99892-8742</a></li>
           <li><a href="tel:+552122588588"><svg class="icone" aria-hidden="true"><use href="#i-telefone"></use></svg>(21) 2258-8588</a></li>
           <li><a href="tel:+552125761617"><svg class="icone" aria-hidden="true"><use href="#i-telefone"></use></svg>(21) 2576-1617</a></li>
-          <li><span class="rodape__instagram" data-instagram><svg class="icone" aria-hidden="true"><use href="#i-instagram"></use></svg><span data-instagram-texto="Instagram {usuario}">Instagram em breve</span></span></li>
+          <li><a class="rodape__instagram" data-instagram href="https://www.instagram.com/liguefraldas/" target="_blank" rel="noopener"><svg class="icone" aria-hidden="true"><use href="#i-instagram"></use></svg><span data-instagram-texto="Instagram {usuario}">Instagram @liguefraldas</span></a></li>
         </ul>
       </div>
 
