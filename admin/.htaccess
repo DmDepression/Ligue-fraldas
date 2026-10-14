@@ -1,0 +1,18 @@
+# Área administrativa: sem indexação, sem cache e sem acesso aos arquivos internos.
+Options -Indexes
+
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+  Header set Cache-Control "no-store"
+  Header set X-Frame-Options "DENY"
+  Header set Referrer-Policy "same-origin"
+</IfModule>
+
+# Pasta com o controle de tentativas de login (e qualquer arquivo oculto)
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^\.dados/ - [F,L]
+</IfModule>

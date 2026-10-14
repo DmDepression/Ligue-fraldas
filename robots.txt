@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /ferramentas/
+Disallow: /admin/
 
 # ANTES DE PUBLICAR: troque pelo domínio do site
 Sitemap: https://www.SEU-DOMINIO.com.br/sitemap.xml

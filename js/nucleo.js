@@ -149,13 +149,31 @@
       if (src && imagens.indexOf(src) === -1) imagens.push(src);
     });
 
+    // Embalagens: mesmo produto vendido em pacotes com quantidades (e preços) diferentes.
+    // [{ id, rotulo, precoCentavos, tamanhos?: ['G'], ativo?: false }]
+    var embalagens = lista(bruto.embalagens).map(function (e) {
+      if (!e || typeof e !== 'object' || e.ativo === false) return null;
+      var eid = texto(e.id);
+      var rotulo = texto(e.rotulo);
+      if (!eid || !rotulo || !Number.isSafeInteger(e.precoCentavos) || e.precoCentavos <= 0) return null;
+      return { id: eid, rotulo: rotulo, precoCentavos: e.precoCentavos, tamanhos: lista(e.tamanhos).map(texto).filter(Boolean) };
+    }).filter(Boolean);
+
+    var preco = Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null;
+    if (lista(bruto.embalagens).length) {
+      // com embalagens, o preço de vitrine é o menor entre as disponíveis
+      preco = embalagens.length ? Math.min.apply(null, embalagens.map(function (e) { return e.precoCentavos; })) : null;
+    }
+
     return {
       id: id,
       nome: nome,
       categoria: texto(bruto.categoria) || 'outros',
       marca: texto(bruto.marca),
       descricao: texto(bruto.descricao),
-      precoCentavos: Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null,
+      precoCentavos: preco,
+      embalagens: embalagens,
+      precosDiferem: embalagens.some(function (e) { return e.precoCentavos !== preco; }),
       tamanhos: lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean),
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
@@ -198,6 +216,7 @@
       p.busca = L.normalizar([
         p.nome, p.marca, categoria.nome, p.descricao, p.tamanhos.join(' '),
         p.variacoes.map(function (g) { return g.opcoes.join(' '); }).join(' '),
+        p.embalagens.map(function (e) { return e.rotulo; }).join(' '),
         p.palavrasChave.join(' ')
       ].join(' '));
 
@@ -220,6 +239,20 @@
       }
     };
   }
+
+  L.embalagemCompativel = function (embalagem, tamanho) {
+    return !embalagem.tamanhos.length || embalagem.tamanhos.indexOf(tamanho) !== -1;
+  };
+
+  // Confere a escolha (tamanho + embalagem) contra o catálogo atual e devolve o preço real.
+  // Retorna { preco, embalagem, descricao } ou null se a combinação não existe/está suspensa.
+  L.resolverItem = function (p, tamanho, embalagemId) {
+    if (!p || !p.precoCentavos || p.tamanhos.indexOf(tamanho) === -1) return null;
+    if (!p.embalagens.length) return { preco: p.precoCentavos, embalagem: '', descricao: tamanho };
+    var e = p.embalagens.find(function (x) { return x.id === embalagemId; });
+    if (!e || !L.embalagemCompativel(e, tamanho)) return null;
+    return { preco: e.precoCentavos, embalagem: e.id, descricao: tamanho + ' · ' + e.rotulo };
+  };
 
   function buscarJSON(url) {
     return fetch(url, { cache: 'no-cache' }).then(function (resposta) {
@@ -325,10 +358,11 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           tamanhos +
-          (p.precoCentavos ? '<p class="produto-preco">' + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
+          (p.precoCentavos ? '<p class="produto-preco">' + (p.precosDiferem ? '<small>a partir de </small>' : '') + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
-          (p.precoCentavos ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
+          (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>Escolher tamanho e embalagem</span></a>' : '') +
+          (p.precoCentavos && !p.embalagens.length ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
             '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
             '<option value="">Escolha o tamanho</option>' + p.tamanhos.map(function (t) {
               return '<option value="' + L.esc(t) + '">' + L.esc(t) + '</option>';

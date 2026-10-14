@@ -48,7 +48,7 @@
             '<h1 class="produto__nome">' + esc(p.nome) + '</h1>' +
             (p.marca ? '<p class="produto__marca">Marca: <strong>' + esc(p.marca) + '</strong></p>' : '') +
             descricao(p.descricao) +
-            (p.precoCentavos ? '<p class="produto-preco produto-preco--grande">' + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
+            (p.precoCentavos ? '<p class="produto-preco produto-preco--grande" data-preco>' + textoPreco(p) + '</p>' : '') +
             opcoes(p) +
             '<div class="produto__cta">' +
               (p.precoCentavos ? '<button type="button" class="btn btn--primario btn--grande btn--bloco" data-produto-adicionar>' +
@@ -72,6 +72,11 @@
 
       document.querySelector('[data-barra-produto]').hidden = false;
       document.body.classList.add('com-barra-produto');
+    }
+
+    function textoPreco(p, embalagem) {
+      var valor = embalagem ? embalagem.precoCentavos : p.precoCentavos;
+      return (!embalagem && p.precosDiferem ? '<small>a partir de </small>' : '') + L.moeda(valor) + '<small>por pacote</small>';
     }
 
     function galeria(p) {
@@ -102,6 +107,13 @@
     function gruposDeOpcoes(p) {
       var grupos = [];
       if (p.tamanhos.length) grupos.push({ nome: 'Tamanho', opcoes: p.tamanhos });
+      if (p.embalagens.length) {
+        grupos.push({
+          nome: 'Embalagem',
+          embalagens: p.embalagens,
+          opcoes: p.embalagens.map(function (e) { return e.rotulo; })
+        });
+      }
       return grupos.concat(p.variacoes);
     }
 
@@ -116,12 +128,14 @@
           return '<fieldset class="opcoes">' +
             '<legend class="opcoes__titulo">' + esc(g.nome) + '</legend>' +
             '<div class="opcoes__lista">' + g.opcoes.map(function (o, oi) {
-              return '<label class="opcao"><input type="radio" name="opcao-' + gi + '" value="' + esc(o) + '"' +
-                ' data-grupo="' + esc(g.nome) + '"' + (unica ? ' checked' : '') + '>' +
+              var e = g.embalagens && g.embalagens[oi];
+              return '<label class="opcao"><input type="radio" name="opcao-' + gi + '" value="' + esc(e ? e.id : o) + '"' +
+                ' data-grupo="' + esc(g.nome) + '" data-rotulo="' + esc(o) + '"' +
+                (e ? ' data-tamanhos="' + esc(e.tamanhos.join('|')) + '"' : '') + (unica ? ' checked' : '') + '>' +
                 '<span>' + esc(o) + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
-        (algumaEscolha ? '<p class="produto__dica">Escolha o tamanho e a quantidade de unidades por pacote antes de adicionar ao carrinho.</p>' : '') +
+        (algumaEscolha ? '<p class="produto__dica">Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.</p>' : '') +
         '</form>';
     }
 
@@ -149,12 +163,34 @@
       });
     }
 
+    // Mostra só as embalagens que existem para o tamanho escolhido e atualiza o preço.
+    function ajustarEmbalagens(p, form) {
+      if (!form || !p.embalagens.length) return;
+      var tamanho = form.querySelector('input[data-grupo="Tamanho"]:checked');
+      var radios = Array.from(form.querySelectorAll('input[data-grupo="Embalagem"]'));
+      radios.forEach(function (r) {
+        var permitidos = r.getAttribute('data-tamanhos');
+        var ok = !permitidos || (tamanho && permitidos.split('|').indexOf(tamanho.value) !== -1);
+        r.disabled = !ok;
+        r.closest('.opcao').hidden = !ok && !!tamanho;
+        r.closest('.opcao').classList.toggle('opcao--indisponivel', !ok);
+        if (!ok && r.checked) r.checked = false;
+      });
+      var disponiveis = radios.filter(function (r) { return !r.disabled; });
+      if (tamanho && disponiveis.length === 1) disponiveis[0].checked = true;
+      var marcada = radios.find(function (r) { return r.checked; });
+      var embalagem = marcada ? p.embalagens.find(function (e) { return e.id === marcada.value; }) : null;
+      var preco = alvo.querySelector('[data-preco]');
+      if (preco) preco.innerHTML = textoPreco(p, embalagem);
+    }
+
     function ligarOpcoes(p) {
       var form = alvo.querySelector('[data-opcoes]');
       var atualizar = function () {
+        ajustarEmbalagens(p, form);
         var escolhas = form
           ? Array.from(form.querySelectorAll('input:checked')).map(function (input) {
-              return { nome: input.getAttribute('data-grupo'), valor: input.value };
+              return { nome: input.getAttribute('data-grupo'), valor: input.getAttribute('data-rotulo') || input.value };
             })
           : [];
         var link = L.linkWhatsApp(L.mensagemProduto(p, escolhas));
@@ -184,8 +220,15 @@
             if (primeira) primeira.focus();
             return;
           }
+          var embalagem = alvo.querySelector('input[data-grupo="Embalagem"]:checked');
+          if (p.embalagens.length && !embalagem) {
+            aviso.textContent = 'Selecione a embalagem (quantidade de unidades) para adicionar ao carrinho.';
+            var primeiraEmb = alvo.querySelector('input[data-grupo="Embalagem"]:not(:disabled)');
+            if (primeiraEmb) primeiraEmb.focus();
+            return;
+          }
           aviso.textContent = '';
-          L.adicionarAoCarrinho(p.id, selecionado.value).catch(function () {
+          L.adicionarAoCarrinho(p.id, selecionado.value, embalagem ? embalagem.value : '').catch(function () {
             aviso.textContent = 'Não foi possível adicionar o produto. Tente novamente.';
           });
         });

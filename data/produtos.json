@@ -5,16 +5,34 @@
     "categoria": "fraldas-geriatricas",
     "marca": "Higifral",
     "descricao": "A Fralda Geriátrica Higifral Confort é destinada a pessoas adultas com incontinência urinária. No tamanho M, é projetada para indivíduos com peso entre 40 kg e 70 kg e cintura ajustável entre 75 cm e 110 cm.",
-    "tamanho": ["M — 24 unidades", "G — 20 unidades", "XG — 18 unidades"],
+    "tamanho": [
+      "M — 24 unidades",
+      "G — 20 unidades",
+      "XG — 18 unidades"
+    ],
     "precoCentavos": 5490,
-    "imagem": "img/produtos/higifral-confort.jpg",
     "informacoes": [
-      { "rotulo": "Tamanho M", "valor": "24 unidades · 40 a 70 kg · cintura de 75 a 110 cm" },
-      { "rotulo": "Tamanho G", "valor": "20 unidades" },
-      { "rotulo": "Tamanho XG", "valor": "18 unidades" }
+      {
+        "rotulo": "Tamanho M",
+        "valor": "24 unidades · 40 a 70 kg · cintura de 75 a 110 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "20 unidades · 70 a 85 kg · cintura de 100 a 145 cm"
+      },
+      {
+        "rotulo": "Tamanho XG",
+        "valor": "18 unidades · acima de 85 kg · cintura de 120 a 155 cm"
+      }
     ],
     "destaque": true,
-    "ordem": 1
+    "ordem": 1,
+    "imagens": [
+      "img/produtos/higifral-confort.jpg",
+      "img/produtos/higifral-confort-g.jpg",
+      "img/produtos/higifral-confort-xg.jpg"
+    ],
+    "criadoEm": "2026-10-05"
   },
   {
     "id": "tena-slip-noturna",
@@ -22,31 +40,860 @@
     "categoria": "fraldas-geriatricas",
     "marca": "Tena",
     "descricao": "A Fralda Geriátrica Tena Slip Noturna é indicada para incontinência urinária severa ou moderada intensa, com alta absorção e uso recomendado principalmente durante o período noturno.",
-    "tamanho": ["M — 24 unidades", "G — 24 unidades", "EG — 24 unidades"],
+    "tamanho": [
+      "M — 24 unidades",
+      "G — 24 unidades",
+      "EG — 24 unidades"
+    ],
     "precoCentavos": 9990,
-    "imagem": "img/produtos/tena-slip-noturna.jpg",
     "informacoes": [
-      { "rotulo": "Tamanho M", "valor": "24 unidades · 40 a 70 kg · cintura de 73 a 126 cm" },
-      { "rotulo": "Tamanho G", "valor": "24 unidades" },
-      { "rotulo": "Tamanho EG", "valor": "24 unidades" }
+      {
+        "rotulo": "Tamanho M",
+        "valor": "24 unidades · 40 a 70 kg · cintura de 73 a 126 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "24 unidades · 70 a 90 kg · cintura de 80 a 156 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "24 unidades · acima de 90 kg · cintura de 120 a 164 cm"
+      }
     ],
     "destaque": true,
-    "ordem": 2
+    "ordem": 2,
+    "imagens": [
+      "img/produtos/tena-slip-noturna.jpg",
+      "img/produtos/tena-slip-noturna-m.jpg",
+      "img/produtos/tena-slip-noturna-g.jpg",
+      "img/produtos/tena-slip-noturna-eg.jpg"
+    ],
+    "criadoEm": "2026-10-05"
   },
   {
     "id": "vida-nova-confort",
     "nome": "Fralda Vida Nova Confort",
     "categoria": "fraldas-geriatricas",
     "marca": "Vida Nova",
-    "descricao": "A Fralda Geriátrica Vida Nova Confort, no tamanho G, é projetada para indivíduos com peso entre 70 kg e 85 kg e cintura ajustável entre 100 cm e 145 cm.",
-    "tamanho": ["G — 30 unidades", "XG — 26 unidades"],
-    "precoCentavos": 6990,
-    "imagem": "img/produtos/vida-nova-confort.png",
+    "descricao": "A Fralda da Vida Nova Confort é a solução ideal para quem busca conforto e proteção em casos de incontinência urinária, pós-operatório ou para pessoas com mobilidade reduzida. Indicada para adultos, garante segurança e comodidade durante o uso diário.",
+    "tamanho": [
+      "G",
+      "XG"
+    ],
     "informacoes": [
-      { "rotulo": "Tamanho G", "valor": "30 unidades · 70 a 85 kg · cintura de 100 a 145 cm" },
-      { "rotulo": "Tamanho XG", "valor": "26 unidades" }
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 85 kg · cintura de 100 a 145 cm"
+      },
+      {
+        "rotulo": "Tamanho XG",
+        "valor": "acima de 85 kg · cintura de 120 a 155 cm"
+      }
     ],
     "destaque": true,
-    "ordem": 3
+    "ordem": 3,
+    "imagens": [
+      "img/produtos/vida-nova-confort.png",
+      "img/produtos/vida-nova-confort-g.jpg",
+      "img/produtos/vida-nova-confort-xg.jpg",
+      "img/produtos/vida-nova-economica-g.jpg",
+      "img/produtos/vida-nova-economica-xg.jpg"
+    ],
+    "criadoEm": "2026-10-05",
+    "embalagens": [
+      {
+        "id": "economica-g",
+        "rotulo": "Econômica — 30 unidades",
+        "tamanhos": [
+          "G"
+        ],
+        "precoCentavos": 6990
+      },
+      {
+        "id": "economica-xg",
+        "rotulo": "Econômica — 26 unidades",
+        "tamanhos": [
+          "XG"
+        ],
+        "precoCentavos": 6990
+      },
+      {
+        "id": "hiper-g",
+        "rotulo": "Hiper — 50 unidades",
+        "tamanhos": [
+          "G"
+        ],
+        "precoCentavos": 11190
+      },
+      {
+        "id": "hiper-xg",
+        "rotulo": "Hiper — 42 unidades",
+        "tamanhos": [
+          "XG"
+        ],
+        "precoCentavos": 11190
+      }
+    ]
+  },
+  {
+    "id": "higifral-premium",
+    "nome": "Fralda Higifral Premium",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Higifral",
+    "descricao": "A Fralda Geriátrica Higifral Premium é destinada a pessoas adultas com incontinência severa.",
+    "tamanho": [
+      "M",
+      "G",
+      "XG"
+    ],
+    "precoCentavos": 5990,
+    "imagens": [
+      "img/produtos/higifral-premium-m.jpg",
+      "img/produtos/higifral-premium-g.jpg",
+      "img/produtos/higifral-premium-xg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "40 a 70 kg · cintura de 75 a 110 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 85 kg · cintura de 100 a 145 cm"
+      },
+      {
+        "rotulo": "Tamanho XG",
+        "valor": "acima de 85 kg · cintura de 120 a 155 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 4,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "tena-confort",
+    "nome": "Fralda Tena Confort",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Tena",
+    "descricao": "A Fralda Geriátrica TENA Confort tem uma camada de Superabsorção, que aumenta a velocidade da absorção deixando a pele 4 vezes mais seca, garantindo segurança contra vazamentos e cuidado com a pele.",
+    "tamanho": [
+      "P",
+      "M",
+      "G",
+      "EG"
+    ],
+    "precoCentavos": 5990,
+    "imagens": [
+      "img/produtos/tena-confort-p.jpg",
+      "img/produtos/tena-confort-m.jpg",
+      "img/produtos/tena-confort-g.jpg",
+      "img/produtos/tena-confort-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P",
+        "valor": "20 a 40 kg · cintura de 40 a 80 cm"
+      },
+      {
+        "rotulo": "Tamanho M",
+        "valor": "40 a 70 kg · cintura de 70 a 120 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura de 80 a 150 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "110 a 165 kg · cintura acima de 90 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 5,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "adultcare",
+    "nome": "Fralda Adultcare",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Adultcare",
+    "descricao": "A Fralda Geriátrica Adultcare Plus é um produto descartável, unissex, desenvolvido para uso adulto, fabricado com matérias-primas de alta qualidade. Possui composição com gel, barreiras antivazamento, inibidor de odor e indicador de umidade, sendo hipoalergênica e dermatologicamente testada.",
+    "tamanho": [
+      "M",
+      "G",
+      "EG"
+    ],
+    "precoCentavos": 7390,
+    "imagens": [
+      "img/produtos/adultcare-m.jpg",
+      "img/produtos/adultcare-g.jpg",
+      "img/produtos/adultcare-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "até 80 kg · cintura de 80 a 115 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "acima de 80 kg · cintura de 115 a 150 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "acima de 90 kg · cintura de 120 a 165 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 6,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "bigfral-dermaplus",
+    "nome": "Fralda Bigfral Dermaplus",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Bigfral",
+    "descricao": "A fralda Bigfral Derma Plus é a escolha ideal para adultos com incontinência urinária severa, sendo uma das opções mais amplas do mercado. Com seu exclusivo sistema de proteção total da pele, oferece uma camada protetora e hidratante, graças aos extratos naturais, prevenindo irritações e mantendo a pele saudável. Além disso, seu sistema antiodor proporciona até 10 horas de proteção e cuidado.",
+    "tamanho": [
+      "M",
+      "G",
+      "XG"
+    ],
+    "imagens": [
+      "img/produtos/bigfral-dermaplus-m.jpg",
+      "img/produtos/bigfral-dermaplus-g.jpg",
+      "img/produtos/bigfral-dermaplus-xg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "40 a 70 kg · cintura de 80 a 115 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura de 115 a 150 cm"
+      },
+      {
+        "rotulo": "Tamanho XG",
+        "valor": "acima de 90 kg · cintura de 120 a 165 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 7,
+    "criadoEm": "2026-10-13",
+    "embalagens": [
+      {
+        "id": "pacote-maior",
+        "rotulo": "Pacote maior",
+        "precoCentavos": 5590
+      },
+      {
+        "id": "pacote-menor",
+        "rotulo": "Pacote menor",
+        "precoCentavos": 2590
+      }
+    ]
+  },
+  {
+    "id": "biofral-classic",
+    "nome": "Fralda Biofral Classic",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Biofral",
+    "descricao": "A Fralda Biofral Classic garante conforto e segurança com ótima absorção e ajuste anatômico. Ideal para o dia a dia, proporciona proteção eficaz e discrição. Qualidade e praticidade para cuidados especiais.",
+    "tamanho": [
+      "M",
+      "G",
+      "EG"
+    ],
+    "precoCentavos": 6490,
+    "imagens": [
+      "img/produtos/biofral-classic-m.jpg",
+      "img/produtos/biofral-classic-g.jpg",
+      "img/produtos/biofral-classic-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "40 a 70 kg · cintura de 70 a 120 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura de 80 a 156 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "acima de 90 kg · cintura de 110 a 165 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 10,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "mais-conforto",
+    "nome": "Fralda Mais Conforto",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Mais Conforto",
+    "descricao": "As Fraldas Mais Conforto Premium foram fabricadas especialmente com o objetivo de proporcionar conforto, segurança, bem-estar e ótima absorção. Indicadas para uso geriátrico (adulto), para incontinência urinária e pós-operatório.",
+    "tamanho": [
+      "M",
+      "G",
+      "XG"
+    ],
+    "precoCentavos": 1490,
+    "imagens": [
+      "img/produtos/mais-conforto-m.jpg",
+      "img/produtos/mais-conforto-g.jpg",
+      "img/produtos/mais-conforto-xg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "40 a 70 kg · cintura até 140 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura até 150 cm"
+      },
+      {
+        "rotulo": "Tamanho XG",
+        "valor": "acima de 90 kg · cintura até 160 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 11,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "geriatex-plus",
+    "nome": "Fralda Geriatex Plus",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Geriatex",
+    "descricao": "A Fralda Geriátrica Geriatex Plus é fabricada especialmente com o objetivo de proporcionar conforto, segurança, bem-estar e ótima absorção. Indicada para uso geriátrico, pós-parto e incontinência urinária.",
+    "tamanho": [
+      "M",
+      "G",
+      "EG"
+    ],
+    "precoCentavos": 2390,
+    "imagens": [
+      "img/produtos/geriatex-plus-m.jpg",
+      "img/produtos/geriatex-plus-g.jpg",
+      "img/produtos/geriatex-plus-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "até 70 kg · cintura de até 85 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura de 115 a 150 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "acima de 90 kg · cintura de 120 a 165 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 12,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "geriatex-premium",
+    "nome": "Fralda Geriatex Premium",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Geriatex",
+    "descricao": "A Fralda Geriatex Premium é de alta performance com tecnologia Active Gel para absorção superior, ideal para incontinência severa.",
+    "tamanho": [
+      "M",
+      "G",
+      "EG"
+    ],
+    "precoCentavos": 2690,
+    "imagens": [
+      "img/produtos/geriatex-premium-m.jpg",
+      "img/produtos/geriatex-premium-g.jpg",
+      "img/produtos/geriatex-premium-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "60 a 70 kg · cintura de 80 a 120 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "70 a 90 kg · cintura de 115 a 150 cm"
+      },
+      {
+        "rotulo": "Tamanho EG",
+        "valor": "acima de 90 kg · cintura de 120 a 165 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 13,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "tena-plus-size",
+    "nome": "Fralda Tena Plus Size",
+    "categoria": "fraldas-geriatricas",
+    "marca": "Tena",
+    "descricao": "A Fralda Plus Size Care da TENA é indicada para incontinência urinária severa, para adultos e idosos com sobrepeso ou obesidade. Possui um sistema MultiFix para melhor fixação do cinto de fechamento, garantindo uma adaptação segura e confortável ao corpo.",
+    "tamanho": [
+      "XXL"
+    ],
+    "precoCentavos": 6790,
+    "imagens": [
+      "img/produtos/tena-plus-size-xxl.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho XXL",
+        "valor": "acima de 90 kg/100 kg · cintura de 147 a 175 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 15,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-vida-nova",
+    "nome": "Roupa Íntima Vida Nova",
+    "categoria": "roupas-intimas",
+    "marca": "Vida Nova",
+    "descricao": "A Vida Nova Pants é ideal para adultos com mobilidade reduzida e incontinência moderada. Possui cintura elástica respirável, formato fácil de vestir e tirar e toque suave de algodão. Oferece controle de odores, proporcionando conforto e segurança.",
+    "tamanho": [
+      "P/M — 16 unidades",
+      "G/XG — 16 unidades"
+    ],
+    "precoCentavos": 4290,
+    "imagens": [
+      "img/produtos/roupa-intima-vida-nova-p-m.jpg",
+      "img/produtos/roupa-intima-vida-nova-p-m-2.jpg",
+      "img/produtos/roupa-intima-vida-nova-g-xg.jpg",
+      "img/produtos/roupa-intima-vida-nova-g-xg-2.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "16 unidades · 30 a 70 kg · cintura de 75 a 104 cm"
+      },
+      {
+        "rotulo": "Tamanho G/XG",
+        "valor": "16 unidades · 70 a 110 kg · cintura de 100 a 137 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 16,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-higifral-full-care",
+    "nome": "Roupa Íntima Higifral Full Care",
+    "categoria": "roupas-intimas",
+    "marca": "Higifral",
+    "descricao": "Roupa íntima descartável Higifral Full Care. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 4990,
+    "destaque": false,
+    "ordem": 17,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-geriatex",
+    "nome": "Roupa Íntima Geriatex",
+    "categoria": "roupas-intimas",
+    "marca": "Geriatex",
+    "descricao": "A Roupa Íntima Descartável Geriatex Pants oferece proteção confiável contra incontinência moderada a severa com discrição e máximo conforto. Ideal para homens e mulheres, contém Active Gel que absorve rapidamente o fluido e mantém a pele seca.",
+    "tamanho": [
+      "P/M",
+      "G/EG"
+    ],
+    "precoCentavos": 5190,
+    "imagens": [
+      "img/produtos/roupa-intima-geriatex-p-m.jpg",
+      "img/produtos/roupa-intima-geriatex-g-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "até 70 kg · cintura de 75 a 104 cm"
+      },
+      {
+        "rotulo": "Tamanho G/EG",
+        "valor": "70 a 90 kg · cintura de 100 a 137 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 18,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-higifral-noturna",
+    "nome": "Roupa Íntima Higifral Noturna",
+    "categoria": "roupas-intimas",
+    "marca": "Higifral",
+    "descricao": "Roupa íntima descartável Higifral Noturna. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 5790,
+    "destaque": false,
+    "ordem": 19,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-tena-confort",
+    "nome": "Roupa Íntima Tena Confort",
+    "categoria": "roupas-intimas",
+    "marca": "Tena",
+    "descricao": "TENA Pants Confort é a opção ideal para perda de urina moderada a severa. Possui Núcleo de Ultra Absorção Acquidry, uma camada que absorve rapidamente grandes quantidades de urina, mantendo o usuário seco, confortável e reduzindo o risco de irritações e infecções na pele.",
+    "tamanho": [
+      "P/M",
+      "G/EG"
+    ],
+    "precoCentavos": 5590,
+    "imagens": [
+      "img/produtos/roupa-intima-tena-confort-p-m.jpg",
+      "img/produtos/roupa-intima-tena-confort-g-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "30 a 70 kg · cintura de 80 a 112 cm"
+      },
+      {
+        "rotulo": "Tamanho G/EG",
+        "valor": "70 a 110 kg · cintura de 100 a 147 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 20,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-tena-noturna",
+    "nome": "Roupa Íntima Tena Noturna",
+    "categoria": "roupas-intimas",
+    "marca": "Tena",
+    "descricao": "TENA Pants Noturna é uma vestimenta íntima descartável projetada para pessoas com perdas de urina severa, funcionando como uma calcinha/cueca com tecnologia especial de absorção. Oferece proteção, conforto e segurança, com controle de vazamentos e odores durante o período noturno.",
+    "tamanho": [
+      "P/M",
+      "G/EG"
+    ],
+    "precoCentavos": 6690,
+    "imagens": [
+      "img/produtos/roupa-intima-tena-noturna-p-m.jpg",
+      "img/produtos/roupa-intima-tena-noturna-g-eg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "30 a 70 kg · cintura de 80 a 112 cm"
+      },
+      {
+        "rotulo": "Tamanho G/EG",
+        "valor": "70 a 110 kg · cintura de 100 a 147 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 21,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-tena-plus-size",
+    "nome": "Roupa Íntima Tena Plus Size",
+    "categoria": "roupas-intimas",
+    "marca": "Tena",
+    "descricao": "Roupa íntima descartável Tena Plus Size. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 6490,
+    "destaque": false,
+    "ordem": 22,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "roupa-intima-plenitud",
+    "nome": "Roupa Íntima Plenitud",
+    "categoria": "roupas-intimas",
+    "marca": "Plenitud",
+    "descricao": "Plenitud Plus é a roupa íntima descartável com a máxima proteção de Plenitud. Possui exclusivo sistema antivazamento, que mantém o líquido longe do corpo, além de ser produzida com material macio e respirável, com toque de algodão.",
+    "tamanho": [
+      "P/M",
+      "G/XG"
+    ],
+    "precoCentavos": 5590,
+    "imagens": [
+      "img/produtos/roupa-intima-plenitud-p-m.jpg",
+      "img/produtos/roupa-intima-plenitud-g-xg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "40 a 70 kg · cintura de 86 a 117 cm"
+      },
+      {
+        "rotulo": "Tamanho G/XG",
+        "valor": "80 a 100 kg · cintura de 112 a 137 cm"
+      }
+    ],
+    "destaque": false,
+    "ordem": 23,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-aro-incofral-basic",
+    "nome": "Absorvente ARO Incofral Basic",
+    "categoria": "absorventes",
+    "marca": "ARO Incofral",
+    "descricao": "Absorvente ARO Incofral Basic. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 3390,
+    "destaque": false,
+    "ordem": 24,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "protetor-aro-incofral-basic-m",
+    "nome": "Protetor ARO Incofral Basic M",
+    "categoria": "protetores",
+    "marca": "ARO Incofral",
+    "descricao": "Protetor ARO Incofral Basic M. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2590,
+    "destaque": false,
+    "ordem": 25,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "protetor-aro-incofral-basic-g",
+    "nome": "Protetor ARO Incofral Basic G",
+    "categoria": "protetores",
+    "marca": "ARO Incofral",
+    "descricao": "Protetor ARO Incofral Basic G. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 3290,
+    "destaque": false,
+    "ordem": 26,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-adultcare-plus",
+    "nome": "Absorvente Adultcare Plus",
+    "categoria": "absorventes",
+    "marca": "Adultcare",
+    "descricao": "Absorvente Adultcare Plus. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 1990,
+    "destaque": false,
+    "ordem": 27,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-adultcare-premium",
+    "nome": "Absorvente Adultcare Premium",
+    "categoria": "absorventes",
+    "marca": "Adultcare",
+    "descricao": "Absorvente Adultcare Premium. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2090,
+    "destaque": false,
+    "ordem": 28,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-adultcare-refil",
+    "nome": "Absorvente Adultcare Refil",
+    "categoria": "absorventes",
+    "marca": "Adultcare",
+    "descricao": "Absorvente Adultcare Refil. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2090,
+    "destaque": false,
+    "ordem": 29,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-mais-conforto",
+    "nome": "Absorvente Mais Conforto",
+    "categoria": "absorventes",
+    "marca": "Mais Conforto",
+    "descricao": "Absorvente Mais Conforto. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2590,
+    "destaque": false,
+    "ordem": 30,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "absorvente-geriatex",
+    "nome": "Absorvente Geriatex",
+    "categoria": "absorventes",
+    "marca": "Geriatex",
+    "descricao": "Absorvente Geriatex. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2090,
+    "destaque": false,
+    "ordem": 31,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "protetor-colchao-adultcare",
+    "nome": "Protetor de Colchão Adultcare",
+    "categoria": "protetores",
+    "marca": "Adultcare",
+    "descricao": "Protetor de Colchão Adultcare. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 3390,
+    "destaque": false,
+    "ordem": 32,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "protetor-colchao-higifral",
+    "nome": "Protetor de Colchão Higifral",
+    "categoria": "protetores",
+    "marca": "Higifral",
+    "descricao": "Protetor de Colchão Higifral. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2590,
+    "destaque": false,
+    "ordem": 33,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "toalha-umedecida-vida-nova",
+    "nome": "Toalha Umedecida Vida Nova",
+    "categoria": "lencos",
+    "marca": "Vida Nova",
+    "descricao": "Toalha Umedecida Vida Nova. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 990,
+    "destaque": false,
+    "ordem": 34,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "toalha-umedecida-higifral",
+    "nome": "Toalha Umedecida Higifral",
+    "categoria": "lencos",
+    "marca": "Higifral",
+    "descricao": "Toalha Umedecida Higifral. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 1190,
+    "destaque": false,
+    "ordem": 35,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "oleo-girassol-farmachem",
+    "nome": "Óleo de Girassol Farmachem",
+    "categoria": "higiene-pessoal",
+    "marca": "Farmachem",
+    "descricao": "Óleo de Girassol Farmachem. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 1090,
+    "destaque": false,
+    "ordem": 36,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "tapete-pet-super-dog",
+    "nome": "Tapete Pet Super Dog",
+    "categoria": "outros",
+    "marca": "Super Dog",
+    "descricao": "Tapete Pet Super Dog. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 6690,
+    "destaque": false,
+    "ordem": 37,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "luva-latex-inoven",
+    "nome": "Luva de Látex Inoven",
+    "categoria": "luvas",
+    "marca": "Inoven",
+    "descricao": "Luva de Látex Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2390,
+    "destaque": false,
+    "ordem": 38,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "luva-nitrilo-inoven",
+    "nome": "Luva de Nitrilo Inoven",
+    "categoria": "luvas",
+    "marca": "Inoven",
+    "descricao": "Luva de Nitrilo Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2590,
+    "destaque": false,
+    "ordem": 39,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "luva-nitrilo-powder-free-safemax",
+    "nome": "Luva de Nitrilo Powder Free Safemax",
+    "categoria": "luvas",
+    "marca": "Safemax",
+    "descricao": "Luva de Nitrilo Powder Free Safemax. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 2590,
+    "destaque": false,
+    "ordem": 40,
+    "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "luva-vinil-inoven",
+    "nome": "Luva de Vinil Inoven",
+    "categoria": "luvas",
+    "marca": "Inoven",
+    "descricao": "Luva de Vinil Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "tamanho": [
+      "Tamanho a combinar"
+    ],
+    "precoCentavos": 1590,
+    "destaque": false,
+    "ordem": 41,
+    "criadoEm": "2026-10-13"
   }
 ]

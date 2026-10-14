@@ -144,3 +144,18 @@ powershell -ExecutionPolicy Bypass -File ferramentas/gerar-imagens.ps1
 ```
 
 O script usa o Chrome ou o Edge instalado para gerar `img/icones/*.png`, `img/og-image.png` e o `favicon.ico`.
+
+## Embalagens (mesmo produto, pacotes diferentes)
+
+Quando o produto é igual e muda só a quantidade de unidades, use o campo `embalagens` em `data/produtos.json` em vez de criar outro produto:
+
+```json
+"embalagens": [
+  { "id": "economica-g", "rotulo": "Econômica — 30 unidades", "tamanhos": ["G"], "precoCentavos": 6990 },
+  { "id": "hiper-g", "rotulo": "Hiper — 50 unidades", "tamanhos": ["G"], "precoCentavos": 11190 }
+]
+```
+
+- `tamanhos` é opcional: sem ele, a embalagem vale para todos os tamanhos.
+- Com `embalagens`, o produto não usa `precoCentavos`: o card mostra "a partir de" e a página do produto deixa escolher tamanho e embalagem.
+- No admin, cada embalagem tem preço e suspensão próprios.

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Ligue Fraldas Geriátricas</title>
+  <link rel="icon" href="../favicon.ico">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <!-- Login -->
+  <main id="tela-login" class="login" hidden>
+    <form id="form-login" class="login__caixa" autocomplete="on">
+      <img src="../img/logo.svg" alt="" width="64" height="64">
+      <h1>Área administrativa</h1>
+      <label>Usuário
+        <input name="usuario" type="text" autocomplete="username" required autofocus>
+      </label>
+      <label>Senha
+        <input name="senha" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="login-erro" class="erro" role="alert" hidden></p>
+      <button class="btn btn--primario" type="submit">Entrar</button>
+    </form>
+  </main>
+
+  <!-- Painel -->
+  <div id="tela-painel" hidden>
+    <header class="topo">
+      <h1>Produtos</h1>
+      <div class="topo__acoes">
+        <a href="../catalogo.html" target="_blank" rel="noopener">Ver catálogo</a>
+        <button id="sair" type="button" class="btn btn--contorno">Sair</button>
+      </div>
+    </header>
+
+    <section class="filtros" aria-label="Filtros">
+      <input id="busca" type="search" placeholder="Buscar produto ou marca…" aria-label="Buscar produto">
+      <select id="filtro-categoria" aria-label="Categoria"></select>
+      <select id="filtro-status" aria-label="Situação">
+        <option value="">Todos</option>
+        <option value="ativos">Ativos</option>
+        <option value="suspensos">Suspensos</option>
+      </select>
+      <span id="contagem" class="contagem"></span>
+    </section>
+
+    <p id="aviso" class="aviso" role="status" hidden></p>
+
+    <div class="tabela-area">
+      <table class="tabela">
+        <thead>
+          <tr><th>Produto</th><th>Categoria</th><th>Preço (R$)</th><th>Situação</th></tr>
+        </thead>
+        <tbody id="linhas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

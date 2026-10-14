@@ -22,11 +22,11 @@
     dados.forEach(function (item) {
       if (!item || typeof item.id !== 'string') return;
       var p = catalogo.porId.get(item.id);
-      if (!p || !p.precoCentavos || p.tamanhos.indexOf(item.tamanho) === -1 ||
-          !Number.isInteger(item.quantidade) || item.quantidade < 1) return;
-      var existente = validos.find(function (i) { return i.id === item.id && i.tamanho === item.tamanho; });
+      var d = L.resolverItem(p, item.tamanho, item.embalagem || '');
+      if (!d || !Number.isInteger(item.quantidade) || item.quantidade < 1) return;
+      var existente = validos.find(function (i) { return i.id === item.id && i.tamanho === item.tamanho && i.embalagem === d.embalagem; });
       if (existente) existente.quantidade = Math.min(99, existente.quantidade + item.quantidade);
-      else validos.push({ id: item.id, tamanho: item.tamanho, quantidade: Math.min(99, item.quantidade) });
+      else validos.push({ id: item.id, tamanho: item.tamanho, embalagem: d.embalagem, quantidade: Math.min(99, item.quantidade) });
     });
     return validos;
   }
@@ -47,16 +47,21 @@
     return pronto;
   }
 
+  function detalhe(item) {
+    return L.resolverItem(catalogo.porId.get(item.id), item.tamanho, item.embalagem || '');
+  }
+
   function mensagem() {
     var total = 0;
     var nome = dialogo.querySelector('[data-carrinho-nome]').value.trim().replace(/\s+/g, ' ');
     var linhas = ['Oi, me chamo ' + nome + '! Gostaria dos seguintes itens:', ''];
     itens.forEach(function (item) {
       var p = catalogo.porId.get(item.id);
-      var subtotal = p.precoCentavos * item.quantidade;
+      var d = detalhe(item);
+      var subtotal = d.preco * item.quantidade;
       total += subtotal;
-      linhas.push('• ' + p.nome + ' — ' + item.tamanho + ' — ' +
-        L.plural(item.quantidade, 'pacote', 'pacotes') + ' × ' + L.moeda(p.precoCentavos) + ' = ' + L.moeda(subtotal));
+      linhas.push('• ' + p.nome + ' — ' + d.descricao + ' — ' +
+        L.plural(item.quantidade, 'pacote', 'pacotes') + ' × ' + L.moeda(d.preco) + ' = ' + L.moeda(subtotal));
     });
     linhas.push('', 'Total dos produtos: ' + L.moeda(total), '', 'Por gentileza.');
     return linhas.join('\n');
@@ -67,16 +72,17 @@
     var total = 0;
     dialogo.querySelector('[data-carrinho-itens]').innerHTML = itens.map(function (item, i) {
       var p = catalogo.porId.get(item.id);
-      var subtotal = p.precoCentavos * item.quantidade;
+      var d = detalhe(item);
+      var subtotal = d.preco * item.quantidade;
       quantidade += item.quantidade;
       total += subtotal;
       return '<li class="carrinho-item">' +
         L.imagemProduto(p.imagens[0], p.nome, 'width="72" height="72"') +
         '<div class="carrinho-item__info"><a href="' + L.urlProduto(p.id) + '"><strong>' + L.esc(p.nome) + '</strong></a>' +
-        '<p>' + L.esc(item.tamanho) + '</p><p>' + L.moeda(p.precoCentavos) + ' por pacote</p>' +
+        '<p>' + L.esc(d.descricao) + '</p><p>' + L.moeda(d.preco) + ' por pacote</p>' +
         '<div class="carrinho-item__controles"><label>Pacotes <input type="number" min="1" max="99" step="1" value="' + item.quantidade + '"' +
-        ' data-quantidade="' + i + '" aria-label="Quantidade de pacotes de ' + L.esc(p.nome + ', ' + item.tamanho) + '"></label>' +
-        '<button type="button" data-remover="' + i + '" aria-label="Remover ' + L.esc(p.nome + ', ' + item.tamanho) + '">Remover</button></div>' +
+        ' data-quantidade="' + i + '" aria-label="Quantidade de pacotes de ' + L.esc(p.nome + ', ' + d.descricao) + '"></label>' +
+        '<button type="button" data-remover="' + i + '" aria-label="Remover ' + L.esc(p.nome + ', ' + d.descricao) + '">Remover</button></div>' +
         '<strong class="carrinho-item__subtotal">Subtotal: ' + L.moeda(subtotal) + '</strong></div></li>';
     }).join('');
     document.querySelectorAll('[data-carrinho-contagem]').forEach(function (el) { el.textContent = quantidade; });
@@ -97,18 +103,19 @@
     });
   }
 
-  L.adicionarAoCarrinho = function (id, tamanho) {
+  L.adicionarAoCarrinho = function (id, tamanho, embalagem) {
     return carregar().then(function () {
       var p = catalogo.porId.get(id);
-      if (!p || !p.precoCentavos || p.tamanhos.indexOf(tamanho) === -1) return false;
-      var item = itens.find(function (i) { return i.id === id && i.tamanho === tamanho; });
+      var d = L.resolverItem(p, tamanho, embalagem || '');
+      if (!d) return false;
+      var item = itens.find(function (i) { return i.id === id && i.tamanho === tamanho && i.embalagem === d.embalagem; });
       if (item && item.quantidade >= 99) {
         abrir();
         aviso.textContent = 'Limite de 99 pacotes por tamanho. Para quantidades maiores, fale com a loja.';
         return false;
       }
       if (item) item.quantidade += 1;
-      else itens.push({ id: id, tamanho: tamanho, quantidade: 1 });
+      else itens.push({ id: id, tamanho: tamanho, embalagem: d.embalagem, quantidade: 1 });
       aviso.textContent = p.nome + ' adicionado ao carrinho.';
       salvar();
       renderizar();
