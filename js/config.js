@@ -33,6 +33,7 @@ window.LIGUE_CONFIG = {
   catalogo: {
     produtos: 'data/produtos.json',
     categorias: 'data/categorias.json',
+    ajustes: 'data/ajustes.json', // criado pelo painel na hospedagem; pode não existir
     porPagina: 24         // produtos por "página" no catálogo (botão "Carregar mais")
   }
 };

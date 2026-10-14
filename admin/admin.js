@@ -224,7 +224,16 @@
     .then(function (r) { return r.json(); })
     .then(function (r) {
       csrf = r.csrf;
-      if (r.logado) mostrarPainel(); else mostrarLogin();
+      if (r.logado) {
+        mostrarPainel();
+      } else {
+        mostrarLogin();
+        if (r.configurado === false) {
+          var erro = $('#login-erro');
+          erro.textContent = 'O painel ainda não tem uma senha configurada na hospedagem.';
+          erro.hidden = false;
+        }
+      }
     })
     .catch(function () {
       mostrarLogin();

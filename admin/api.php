@@ -17,7 +17,7 @@ function responder(array $dados, int $status = 200): void
     exit;
 }
 
-function ler_produtos(): array
+function ler_produtos_base(): array
 {
     $json = @file_get_contents(ARQUIVO_PRODUTOS);
     $lista = $json === false ? null : json_decode($json, true);
@@ -25,6 +25,58 @@ function ler_produtos(): array
         responder(['erro' => 'Não foi possível ler data/produtos.json.'], 500);
     }
     return $lista;
+}
+
+function ler_ajustes(): array
+{
+    if (!is_file(ARQUIVO_AJUSTES)) {
+        return ['produtos' => []];
+    }
+    $json = @file_get_contents(ARQUIVO_AJUSTES);
+    $ajustes = $json === false ? null : json_decode($json, true);
+    if (!is_array($ajustes) || !is_array($ajustes['produtos'] ?? null)) {
+        responder(['erro' => 'data/ajustes.json está inválido. Restaure o último backup.'], 500);
+    }
+    return $ajustes;
+}
+
+function aplicar_ajustes(array $lista, array $ajustes): array
+{
+    $porProduto = $ajustes['produtos'] ?? [];
+    foreach ($lista as &$produto) {
+        $ajuste = $porProduto[$produto['id'] ?? ''] ?? null;
+        if (!is_array($ajuste)) {
+            continue;
+        }
+        if (is_bool($ajuste['ativo'] ?? null)) {
+            $produto['ativo'] = $ajuste['ativo'];
+        }
+        if (is_int($ajuste['precoCentavos'] ?? null)) {
+            $produto['precoCentavos'] = $ajuste['precoCentavos'];
+        }
+        if (is_array($produto['embalagens'] ?? null) && is_array($ajuste['embalagens'] ?? null)) {
+            foreach ($produto['embalagens'] as &$embalagem) {
+                $ajusteEmb = $ajuste['embalagens'][$embalagem['id'] ?? ''] ?? null;
+                if (!is_array($ajusteEmb)) {
+                    continue;
+                }
+                if (is_bool($ajusteEmb['ativo'] ?? null)) {
+                    $embalagem['ativo'] = $ajusteEmb['ativo'];
+                }
+                if (is_int($ajusteEmb['precoCentavos'] ?? null)) {
+                    $embalagem['precoCentavos'] = $ajusteEmb['precoCentavos'];
+                }
+            }
+            unset($embalagem);
+        }
+    }
+    unset($produto);
+    return $lista;
+}
+
+function ler_produtos(): array
+{
+    return aplicar_ajustes(ler_produtos_base(), ler_ajustes());
 }
 
 $entrada = json_decode((string)file_get_contents('php://input'), true);
@@ -38,10 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $acao !== 'sessao') {
 /* ---- ações que não exigem login ---- */
 
 if ($acao === 'sessao') {
-    responder(['logado' => esta_logado(), 'csrf' => token_csrf()]);
+    responder([
+        'logado' => esta_logado(),
+        'configurado' => painel_configurado(),
+        'csrf' => token_csrf(),
+    ]);
 }
 
 if ($acao === 'login') {
+    if (!painel_configurado()) {
+        responder(['erro' => 'O painel ainda não tem uma senha configurada na hospedagem.'], 503);
+    }
     $ip = ip_cliente();
     if (tentativas_recentes($ip) >= MAX_TENTATIVAS) {
         responder(['erro' => 'Muitas tentativas. Aguarde 15 minutos e tente de novo.'], 429);
@@ -111,93 +170,109 @@ if ($acao === 'atualizar') {
         responder(['erro' => 'Valor de "ativo" inválido.'], 400);
     }
 
-    // Bloqueia o arquivo durante a leitura + gravação para evitar edições simultâneas se sobreporem.
-    $arquivo = fopen(ARQUIVO_PRODUTOS, 'c+');
-    if (!$arquivo || !flock($arquivo, LOCK_EX)) {
-        responder(['erro' => 'Não foi possível gravar (verifique a permissão de data/produtos.json).'], 500);
+    // O catálogo do Git fica intacto; apenas o arquivo local de ajustes é alterado.
+    $bloqueio = @fopen(arquivo_bloqueio_catalogo(), 'c+');
+    if (!$bloqueio || !flock($bloqueio, LOCK_EX)) {
+        responder(['erro' => 'Não foi possível gravar (verifique a permissão das pastas data e admin/.dados).'], 500);
     }
-    $lista = json_decode((string)stream_get_contents($arquivo), true);
-    if (!is_array($lista)) {
-        flock($arquivo, LOCK_UN);
-        fclose($arquivo);
-        responder(['erro' => 'data/produtos.json está inválido.'], 500);
+    $listaBase = ler_produtos_base();
+    $original = is_file(ARQUIVO_AJUSTES)
+        ? @file_get_contents(ARQUIVO_AJUSTES)
+        : "{\n    \"produtos\": {}\n}\n";
+    $ajustes = $original === false ? null : json_decode($original, true);
+    if (!is_array($ajustes) || !is_array($ajustes['produtos'] ?? null)) {
+        flock($bloqueio, LOCK_UN);
+        fclose($bloqueio);
+        responder(['erro' => 'data/ajustes.json está inválido. Restaure o último backup.'], 500);
     }
 
     $embalagemId = isset($entrada['embalagem']) ? (string)$entrada['embalagem'] : null;
-    $achou = false;
-    $erroEmbalagem = null;
-    foreach ($lista as &$p) {
-        if (($p['id'] ?? null) !== $id) {
-            continue;
+    $produtoBase = null;
+    foreach ($listaBase as $produto) {
+        if (($produto['id'] ?? null) === $id) {
+            $produtoBase = $produto;
+            break;
         }
-        $achou = true;
-        $temEmbalagens = is_array($p['embalagens'] ?? null) && count($p['embalagens']) > 0;
-
-        if ($embalagemId !== null) {
-            // Edição de UMA embalagem (preço e/ou suspensão só dela)
-            $achouEmb = false;
-            if ($temEmbalagens) {
-                foreach ($p['embalagens'] as &$e) {
-                    if (($e['id'] ?? null) === $embalagemId) {
-                        if ($temPreco) {
-                            $e['precoCentavos'] = $preco;
-                        }
-                        if ($temAtivo) {
-                            if ($entrada['ativo']) {
-                                unset($e['ativo']);
-                            } else {
-                                $e['ativo'] = false;
-                            }
-                        }
-                        $achouEmb = true;
-                        break;
-                    }
-                }
-                unset($e);
-            }
-            if (!$achouEmb) {
-                $erroEmbalagem = 'Embalagem não encontrada.';
-            }
-        } elseif ($temPreco && $temEmbalagens) {
-            $erroEmbalagem = 'Este produto tem embalagens: altere o preço de cada embalagem.';
-        } else {
-            if ($temPreco) {
-                $p['precoCentavos'] = $preco;
-            }
-            if ($temAtivo) {
-                if ($entrada['ativo']) {
-                    unset($p['ativo']);       // ativo = padrão; mantém o JSON limpo
-                } else {
-                    $p['ativo'] = false;      // o site já esconde produtos com ativo:false
-                }
-            }
-        }
-        break;
     }
-    unset($p);
-
-    if ($achou && $erroEmbalagem !== null) {
-        flock($arquivo, LOCK_UN);
-        fclose($arquivo);
-        responder(['erro' => $erroEmbalagem], 400);
-    }
-    if (!$achou) {
-        flock($arquivo, LOCK_UN);
-        fclose($arquivo);
+    if ($produtoBase === null) {
+        flock($bloqueio, LOCK_UN);
+        fclose($bloqueio);
         responder(['erro' => 'Produto não encontrado.'], 404);
     }
 
-    $novo = json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
-    rewind($arquivo);
-    ftruncate($arquivo, 0);
-    $gravou = fwrite($arquivo, $novo) !== false;
-    fflush($arquivo);
-    flock($arquivo, LOCK_UN);
-    fclose($arquivo);
+    $temEmbalagens = is_array($produtoBase['embalagens'] ?? null) && count($produtoBase['embalagens']) > 0;
+    $ajustes['produtos'][$id] ??= [];
 
-    if (!$gravou) {
-        responder(['erro' => 'Falha ao gravar o arquivo.'], 500);
+    if ($embalagemId !== null) {
+        $embalagemBase = null;
+        foreach ($produtoBase['embalagens'] ?? [] as $embalagem) {
+            if (($embalagem['id'] ?? null) === $embalagemId) {
+                $embalagemBase = $embalagem;
+                break;
+            }
+        }
+        if ($embalagemBase === null) {
+            flock($bloqueio, LOCK_UN);
+            fclose($bloqueio);
+            responder(['erro' => 'Embalagem não encontrada.'], 400);
+        }
+        $ajustes['produtos'][$id]['embalagens'][$embalagemId] ??= [];
+        if ($temPreco) {
+            if ($preco === ($embalagemBase['precoCentavos'] ?? null)) {
+                unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]['precoCentavos']);
+            } else {
+                $ajustes['produtos'][$id]['embalagens'][$embalagemId]['precoCentavos'] = $preco;
+            }
+        }
+        if ($temAtivo) {
+            $ativoBase = ($embalagemBase['ativo'] ?? true) !== false;
+            if ($entrada['ativo'] === $ativoBase) {
+                unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]['ativo']);
+            } else {
+                $ajustes['produtos'][$id]['embalagens'][$embalagemId]['ativo'] = $entrada['ativo'];
+            }
+        }
+        if (!$ajustes['produtos'][$id]['embalagens'][$embalagemId]) {
+            unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]);
+        }
+        if (empty($ajustes['produtos'][$id]['embalagens'])) {
+            unset($ajustes['produtos'][$id]['embalagens']);
+        }
+    } elseif ($temPreco && $temEmbalagens) {
+        flock($bloqueio, LOCK_UN);
+        fclose($bloqueio);
+        responder(['erro' => 'Este produto tem embalagens: altere o preço de cada embalagem.'], 400);
+    } else {
+        if ($temPreco) {
+            if ($preco === ($produtoBase['precoCentavos'] ?? null)) {
+                unset($ajustes['produtos'][$id]['precoCentavos']);
+            } else {
+                $ajustes['produtos'][$id]['precoCentavos'] = $preco;
+            }
+        }
+        if ($temAtivo) {
+            $ativoBase = ($produtoBase['ativo'] ?? true) !== false;
+            if ($entrada['ativo'] === $ativoBase) {
+                unset($ajustes['produtos'][$id]['ativo']);
+            } else {
+                $ajustes['produtos'][$id]['ativo'] = $entrada['ativo'];
+            }
+        }
     }
+    if (!$ajustes['produtos'][$id]) {
+        unset($ajustes['produtos'][$id]);
+    }
+
+    try {
+        salvar_ajustes($ajustes, $original);
+    } catch (Throwable $erro) {
+        flock($bloqueio, LOCK_UN);
+        fclose($bloqueio);
+        error_log('Ligue Fraldas admin: ' . $erro->getMessage());
+        responder(['erro' => $erro->getMessage()], 500);
+    }
+    flock($bloqueio, LOCK_UN);
+    fclose($bloqueio);
     responder(['ok' => true]);
 }
 

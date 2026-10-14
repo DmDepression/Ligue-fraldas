@@ -240,6 +240,36 @@
     };
   }
 
+  // Preços e suspensões feitos no painel ficam num arquivo separado do catálogo
+  // versionado. Isso permite atualizar o site com git pull sem perder ajustes locais.
+  function aplicarAjustes(dadosProdutos, dadosAjustes) {
+    var produtos = Array.isArray(dadosProdutos) ? dadosProdutos : (dadosProdutos && dadosProdutos.produtos) || [];
+    var ajustes = dadosAjustes && dadosAjustes.produtos;
+    if (!ajustes || typeof ajustes !== 'object') return produtos;
+
+    return produtos.map(function (bruto) {
+      var ajuste = bruto && ajustes[bruto.id];
+      if (!ajuste || typeof ajuste !== 'object') return bruto;
+      var produto = Object.assign({}, bruto);
+      if (typeof ajuste.ativo === 'boolean') produto.ativo = ajuste.ativo;
+      if (Number.isSafeInteger(ajuste.precoCentavos)) produto.precoCentavos = ajuste.precoCentavos;
+
+      if (Array.isArray(bruto.embalagens) && ajuste.embalagens && typeof ajuste.embalagens === 'object') {
+        produto.embalagens = bruto.embalagens.map(function (embalagem) {
+          var ajusteEmbalagem = embalagem && ajuste.embalagens[embalagem.id];
+          if (!ajusteEmbalagem || typeof ajusteEmbalagem !== 'object') return embalagem;
+          var copia = Object.assign({}, embalagem);
+          if (typeof ajusteEmbalagem.ativo === 'boolean') copia.ativo = ajusteEmbalagem.ativo;
+          if (Number.isSafeInteger(ajusteEmbalagem.precoCentavos)) {
+            copia.precoCentavos = ajusteEmbalagem.precoCentavos;
+          }
+          return copia;
+        });
+      }
+      return produto;
+    });
+  }
+
   L.embalagemCompativel = function (embalagem, tamanho) {
     return !embalagem.tamanhos.length || embalagem.tamanhos.indexOf(tamanho) !== -1;
   };
@@ -261,12 +291,24 @@
     });
   }
 
+  function buscarJSONOpcional(url, padrao) {
+    if (!url) return Promise.resolve(padrao);
+    return fetch(url, { cache: 'no-cache' }).then(function (resposta) {
+      if (resposta.status === 404) return padrao;
+      if (!resposta.ok) throw new Error('HTTP ' + resposta.status + ' ao carregar ' + url);
+      return resposta.json();
+    });
+  }
+
   var carregamento = null;
 
   L.carregarCatalogo = function () {
     if (!carregamento) {
-      carregamento = Promise.all([buscarJSON(C.catalogo.produtos), buscarJSON(C.catalogo.categorias)])
-        .then(function (r) { return montarCatalogo(r[0], r[1]); })
+      carregamento = Promise.all([
+        buscarJSON(C.catalogo.produtos),
+        buscarJSON(C.catalogo.categorias),
+        buscarJSONOpcional(C.catalogo.ajustes, { produtos: {} })
+      ]).then(function (r) { return montarCatalogo(aplicarAjustes(r[0], r[2]), r[1]); })
         .catch(function (erro) {
           carregamento = null;
           if (location.protocol === 'file:') {

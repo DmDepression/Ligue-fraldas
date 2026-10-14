@@ -491,11 +491,20 @@
     "nome": "Roupa Íntima Higifral Full Care",
     "categoria": "roupas-intimas",
     "marca": "Higifral",
-    "descricao": "Roupa íntima descartável Higifral Full Care. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Roupa Íntima Adulto Higifral Pants Full Care XXG oferece discrição, conforto e máxima proteção. A tecnologia de alta absorção ajuda a manter a pele seca, enquanto o formato tipo calça favorece o ajuste e a liberdade de movimentos.",
     "tamanho": [
-      "Tamanho a combinar"
+      "XXG — 14 unidades"
     ],
     "precoCentavos": 4990,
+    "imagens": [
+      "img/produtos/roupa-intima-higifral-full-care-xxg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho XXG",
+        "valor": "14 unidades · 90 a 120 kg · cintura de 120 a 155 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 17,
     "criadoEm": "2026-10-13"
@@ -534,11 +543,26 @@
     "nome": "Roupa Íntima Higifral Noturna",
     "categoria": "roupas-intimas",
     "marca": "Higifral",
-    "descricao": "Roupa íntima descartável Higifral Noturna. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Roupa Íntima Higifral Pants Noturna oferece conforto e proteção para o período noturno. Seu formato tipo calça e a alta absorção ajudam a evitar vazamentos e proporcionam mais segurança durante a noite.",
     "tamanho": [
-      "Tamanho a combinar"
+      "P/M — 16 unidades",
+      "G/XG — 16 unidades"
     ],
     "precoCentavos": 5790,
+    "imagens": [
+      "img/produtos/roupa-intima-higifral-noturna-p-m.jpg",
+      "img/produtos/roupa-intima-higifral-noturna-g-xg.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho P/M",
+        "valor": "16 unidades · 30 a 70 kg · cintura de 75 a 104 cm"
+      },
+      {
+        "rotulo": "Tamanho G/XG",
+        "valor": "16 unidades · 70 a 110 kg · cintura de 104 a 137 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 19,
     "criadoEm": "2026-10-13"
@@ -606,11 +630,20 @@
     "nome": "Roupa Íntima Tena Plus Size",
     "categoria": "roupas-intimas",
     "marca": "Tena",
-    "descricao": "Roupa íntima descartável Tena Plus Size. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Roupa Íntima Tena Pants Plus Size Care é descartável e unissex, desenvolvida para adultos com sobrepeso ou obesidade. Possui elásticos na cintura e nas pernas para um ajuste confortável e seguro, além de rápida absorção.",
     "tamanho": [
-      "Tamanho a combinar"
+      "XXL — 8 unidades"
     ],
     "precoCentavos": 6490,
+    "imagens": [
+      "img/produtos/roupa-intima-tena-plus-size-xxl.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho XXL",
+        "valor": "8 unidades · acima de 90 kg · cintura de 147 a 175 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 22,
     "criadoEm": "2026-10-13"
@@ -649,11 +682,25 @@
     "nome": "Absorvente ARO Incofral Basic",
     "categoria": "absorventes",
     "marca": "ARO Incofral",
-    "descricao": "Absorvente ARO Incofral Basic. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Absorvente Geriátrico ARO Incofral Basic é indicado para pessoas com incontinência urinária e também para situações de pós-parto e pós-operatório. Pode ser usado por homens e mulheres e possui material hipoalergênico.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 60 unidades"
     ],
     "precoCentavos": 3390,
+    "imagens": [
+      "img/produtos/absorvente-aro-incofral-basic.jpg",
+      "img/produtos/absorvente-aro-incofral-basic-2.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "aproximadamente 40 × 15 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "60 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 24,
     "criadoEm": "2026-10-13"
@@ -663,11 +710,20 @@
     "nome": "Protetor ARO Incofral Basic M",
     "categoria": "protetores",
     "marca": "ARO Incofral",
-    "descricao": "Protetor ARO Incofral Basic M. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
-      "Tamanho a combinar"
+      "M — 6 unidades"
     ],
     "precoCentavos": 2590,
+    "imagens": [
+      "img/produtos/protetor-aro-incofral-basic-m.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "6 unidades · aproximadamente 117,5 × 77,5 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 25,
     "criadoEm": "2026-10-13"
@@ -677,11 +733,20 @@
     "nome": "Protetor ARO Incofral Basic G",
     "categoria": "protetores",
     "marca": "ARO Incofral",
-    "descricao": "Protetor ARO Incofral Basic G. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
-      "Tamanho a combinar"
+      "G — 5 unidades"
     ],
     "precoCentavos": 3290,
+    "imagens": [
+      "img/produtos/protetor-aro-incofral-basic-g.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho G",
+        "valor": "5 unidades · aproximadamente 148 × 82 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 26,
     "criadoEm": "2026-10-13"
@@ -691,11 +756,24 @@
     "nome": "Absorvente Adultcare Plus",
     "categoria": "absorventes",
     "marca": "Adultcare",
-    "descricao": "Absorvente Adultcare Plus. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Absorvente Adultcare Plus é indicado para pessoas com incontinência urinária e em casos de pós-parto e pós-operatório. Contém inibidor de odores e Aloe Vera, que ajudam no cuidado com a pele e no controle do mau cheiro.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 20 unidades"
     ],
     "precoCentavos": 1990,
+    "imagens": [
+      "img/produtos/absorvente-adultcare-plus.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "aproximadamente 38 × 10 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "20 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 27,
     "criadoEm": "2026-10-13"
@@ -705,11 +783,24 @@
     "nome": "Absorvente Adultcare Premium",
     "categoria": "absorventes",
     "marca": "Adultcare",
-    "descricao": "Absorvente Adultcare Premium. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Absorvente Adultcare Premium é indicado para adultos ou idosos, especialmente em casos de incontinência severa. Contém inibidor de odores, Aloe Vera e três linhas adesivas para facilitar o uso.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 20 unidades"
     ],
     "precoCentavos": 2090,
+    "imagens": [
+      "img/produtos/absorvente-adultcare-premium.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "aproximadamente 45 × 15 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "20 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 28,
     "criadoEm": "2026-10-13"
@@ -719,11 +810,20 @@
     "nome": "Absorvente Adultcare Refil",
     "categoria": "absorventes",
     "marca": "Adultcare",
-    "descricao": "Absorvente Adultcare Refil. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Refil Absorvente Adultcare Active+ foi desenvolvido para uso com fraldas tipo calça, oferecendo uma opção prática para reforçar a absorção e a proteção.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 18 unidades"
     ],
     "precoCentavos": 2090,
+    "imagens": [
+      "img/produtos/absorvente-adultcare-refil.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Embalagem",
+        "valor": "18 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 29,
     "criadoEm": "2026-10-13"
@@ -733,11 +833,24 @@
     "nome": "Absorvente Mais Conforto",
     "categoria": "absorventes",
     "marca": "Mais Conforto",
-    "descricao": "Absorvente Mais Conforto. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Absorvente Geriátrico Mais Conforto Premium é descartável e indicado para incontinência, fluxo menstrual, pós-parto e pós-operatório.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 40 unidades"
     ],
     "precoCentavos": 2590,
+    "imagens": [
+      "img/produtos/absorvente-mais-conforto.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "aproximadamente 39 × 12 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "40 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 30,
     "criadoEm": "2026-10-13"
@@ -747,11 +860,24 @@
     "nome": "Absorvente Geriatex",
     "categoria": "absorventes",
     "marca": "Geriatex",
-    "descricao": "Absorvente Geriatex. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Absorvente Geriatex possui alta absorção e foi desenvolvido para oferecer segurança, conforto e proteção em casos de perdas urinárias leves a moderadas e situações que exigem cuidado contínuo.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Único — 20 unidades"
     ],
     "precoCentavos": 2090,
+    "imagens": [
+      "img/produtos/absorvente-geriatex.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "aproximadamente 38 × 14 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "20 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 31,
     "criadoEm": "2026-10-13"
@@ -761,11 +887,26 @@
     "nome": "Protetor de Colchão Adultcare",
     "categoria": "protetores",
     "marca": "Adultcare",
-    "descricao": "Protetor de Colchão Adultcare. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "Os Protetores de Colchão Descartáveis Adultcare podem ser usados em colchões, sofás, veículos e cadeiras de rodas. São hipoalergênicos e possuem gel superabsorvente e inibidor de odor.",
     "tamanho": [
-      "Tamanho a combinar"
+      "M — 6 unidades",
+      "G — 5 unidades"
     ],
     "precoCentavos": 3390,
+    "imagens": [
+      "img/produtos/protetor-colchao-adultcare-m.jpg",
+      "img/produtos/protetor-colchao-adultcare-g.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "6 unidades · 117,5 × 77,5 cm"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "5 unidades · 148 × 82 cm"
+      }
+    ],
     "destaque": false,
     "ordem": 32,
     "criadoEm": "2026-10-13"
@@ -775,11 +916,26 @@
     "nome": "Protetor de Colchão Higifral",
     "categoria": "protetores",
     "marca": "Higifral",
-    "descricao": "Protetor de Colchão Higifral. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Protetor de Colchão Higifral Descartável oferece absorção para ajudar a proteger o colchão contra líquidos e sujeiras durante os cuidados diários.",
     "tamanho": [
-      "Tamanho a combinar"
+      "M — 6 unidades",
+      "G — 5 unidades"
     ],
     "precoCentavos": 2590,
+    "imagens": [
+      "img/produtos/protetor-colchao-higifral-m.jpg",
+      "img/produtos/protetor-colchao-higifral-g.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Tamanho M",
+        "valor": "6 unidades · 1,20 × 0,80 m"
+      },
+      {
+        "rotulo": "Tamanho G",
+        "valor": "5 unidades · 1,50 × 0,80 m"
+      }
+    ],
     "destaque": false,
     "ordem": 33,
     "criadoEm": "2026-10-13"
@@ -789,11 +945,24 @@
     "nome": "Toalha Umedecida Vida Nova",
     "categoria": "lencos",
     "marca": "Vida Nova",
-    "descricao": "Toalha Umedecida Vida Nova. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Toalha Umedecida Vida Nova é indicada para higiene adulta e banho de leito. É enriquecida com Aloe Vera, dermatologicamente testada e oferece limpeza suave para a rotina de cuidados.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Pacote — 40 unidades"
     ],
     "precoCentavos": 990,
+    "imagens": [
+      "img/produtos/toalha-umedecida-vida-nova.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "22 × 20 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "40 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 34,
     "criadoEm": "2026-10-13"
@@ -803,11 +972,24 @@
     "nome": "Toalha Umedecida Higifral",
     "categoria": "lencos",
     "marca": "Higifral",
-    "descricao": "Toalha Umedecida Higifral. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Toalha Umedecida Higifral foi desenvolvida para a higiene diária de adultos, inclusive pessoas acamadas ou com mobilidade reduzida. É macia, resistente e não contém álcool etílico.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Pacote — 40 unidades"
     ],
     "precoCentavos": 1190,
+    "imagens": [
+      "img/produtos/toalha-umedecida-higifral.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "25 × 20 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "40 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 35,
     "criadoEm": "2026-10-13"
@@ -817,11 +999,20 @@
     "nome": "Óleo de Girassol Farmachem",
     "categoria": "higiene-pessoal",
     "marca": "Farmachem",
-    "descricao": "Óleo de Girassol Farmachem. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Óleo de Girassol Hidratante Farmachem é formulado para hidratar e nutrir a pele, aproveitando as propriedades emolientes e antioxidantes do óleo de girassol.",
     "tamanho": [
-      "Tamanho a combinar"
+      "Frasco de 200 ml"
     ],
     "precoCentavos": 1090,
+    "imagens": [
+      "img/produtos/oleo-girassol-farmachem.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Conteúdo",
+        "valor": "200 ml"
+      }
+    ],
     "destaque": false,
     "ordem": 36,
     "criadoEm": "2026-10-13"
@@ -831,11 +1022,24 @@
     "nome": "Tapete Pet Super Dog",
     "categoria": "outros",
     "marca": "Super Dog",
-    "descricao": "Tapete Pet Super Dog. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "O Tapete Higiênico Super Dog Premium Slim possui sete camadas de proteção para auxiliar na absorção da urina e ajudar a manter o ambiente seco, além de contar com barreira impermeável.",
     "tamanho": [
-      "Tamanho a combinar"
+      "80 × 60 cm — 30 unidades"
     ],
     "precoCentavos": 6690,
+    "imagens": [
+      "img/produtos/tapete-pet-super-dog.jpg"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Medidas",
+        "valor": "80 × 60 cm"
+      },
+      {
+        "rotulo": "Embalagem",
+        "valor": "30 unidades"
+      }
+    ],
     "destaque": false,
     "ordem": 37,
     "criadoEm": "2026-10-13"
@@ -845,11 +1049,18 @@
     "nome": "Luva de Látex Inoven",
     "categoria": "luvas",
     "marca": "Inoven",
-    "descricao": "Luva de Látex Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "As Luvas de Látex com pó Inoven oferecem proteção e praticidade. O revestimento com pó facilita a colocação, e o produto é indicado para atividades que exigem higiene e agilidade.",
     "tamanho": [
-      "Tamanho a combinar"
+      "P — 100 unidades",
+      "M — 100 unidades",
+      "G — 100 unidades"
     ],
     "precoCentavos": 2390,
+    "imagens": [
+      "img/produtos/luva-latex-inoven-p.jpg",
+      "img/produtos/luva-latex-inoven-m.jpg",
+      "img/produtos/luva-latex-inoven-g.jpg"
+    ],
     "destaque": false,
     "ordem": 38,
     "criadoEm": "2026-10-13"
@@ -859,27 +1070,18 @@
     "nome": "Luva de Nitrilo Inoven",
     "categoria": "luvas",
     "marca": "Inoven",
-    "descricao": "Luva de Nitrilo Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "As Luvas de Nitrilo descartáveis Inoven podem ser utilizadas em atividades de saúde, indústria, manuseio de alimentos e limpeza. São sem pó e ajudam a proteger as mãos do contato direto com materiais.",
     "tamanho": [
-      "Tamanho a combinar"
+      "M — 100 unidades",
+      "G — 100 unidades"
     ],
     "precoCentavos": 2590,
+    "imagens": [
+      "img/produtos/luva-nitrilo-inoven-m.jpg",
+      "img/produtos/luva-nitrilo-inoven-g.jpg"
+    ],
     "destaque": false,
     "ordem": 39,
-    "criadoEm": "2026-10-13"
-  },
-  {
-    "id": "luva-nitrilo-powder-free-safemax",
-    "nome": "Luva de Nitrilo Powder Free Safemax",
-    "categoria": "luvas",
-    "marca": "Safemax",
-    "descricao": "Luva de Nitrilo Powder Free Safemax. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
-    "tamanho": [
-      "Tamanho a combinar"
-    ],
-    "precoCentavos": 2590,
-    "destaque": false,
-    "ordem": 40,
     "criadoEm": "2026-10-13"
   },
   {
@@ -887,11 +1089,16 @@
     "nome": "Luva de Vinil Inoven",
     "categoria": "luvas",
     "marca": "Inoven",
-    "descricao": "Luva de Vinil Inoven. Consulte a loja pelo WhatsApp para saber tamanhos e unidades por pacote.",
+    "descricao": "A Luva de Vinil Inoven oferece sensibilidade ao toque e praticidade para trabalhos leves, limpeza, higiene e manuseio de alimentos. Possui acabamento sem costuras e formato ambidestro.",
     "tamanho": [
-      "Tamanho a combinar"
+      "M — 100 unidades",
+      "G — 100 unidades"
     ],
     "precoCentavos": 1590,
+    "imagens": [
+      "img/produtos/luva-vinil-inoven-m.jpg",
+      "img/produtos/luva-vinil-inoven-g.jpg"
+    ],
     "destaque": false,
     "ordem": 41,
     "criadoEm": "2026-10-13"
