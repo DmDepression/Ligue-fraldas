@@ -397,9 +397,14 @@
     var h = 'h' + (nivel || 3);
     var categoria = catalogo.categoria(p.categoria);
     var url = L.urlProduto(p.id);
-    var tamanhos = p.tamanhos.length
-      ? '<p class="card__tamanhos"><span class="sr-only">Tamanhos: </span>' +
-        p.tamanhos.map(function (t) { return '<span class="etiqueta">' + L.esc(t) + '</span>'; }).join('') + '</p>'
+    var somenteTamanhoUnico = p.tamanhos.length === 1 && L.normalizar(p.tamanhos[0]) === 'unico';
+    var mostrarEmbalagens = somenteTamanhoUnico && p.embalagens.length > 1;
+    var opcoesResumo = mostrarEmbalagens
+      ? p.embalagens.map(function (e) { return e.rotulo; })
+      : p.tamanhos;
+    var etiquetas = opcoesResumo.length
+      ? '<p class="card__tamanhos"><span class="sr-only">' + (mostrarEmbalagens ? 'Embalagens: ' : 'Tamanhos: ') + '</span>' +
+        opcoesResumo.map(function (opcao) { return '<span class="etiqueta">' + L.esc(opcao) + '</span>'; }).join('') + '</p>'
       : '';
 
     return '' +
@@ -412,11 +417,11 @@
           '<p class="card__categoria">' + L.esc(categoria ? categoria.nome : '') + '</p>' +
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
-          tamanhos +
+          etiquetas +
           (p.precoCentavos ? '<p class="produto-preco">' + (p.precosDiferem && p.mostrarPrecoAPartir ? '<small>a partir de </small>' : '') + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
-          (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>Escolher tamanho e embalagem</span></a>' : '') +
+          (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>' + (somenteTamanhoUnico ? 'Escolher embalagem' : 'Escolher tamanho e embalagem') + '</span></a>' : '') +
           (p.precoCentavos && !p.embalagens.length ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
             (p.tamanhos.length > 1
               ? '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
