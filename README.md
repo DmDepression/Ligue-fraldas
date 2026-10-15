@@ -27,12 +27,13 @@ data/ajustes.json       Preços e suspensões do painel (criado na hospedagem; f
 data/categorias.json    Lista de categorias
 data/produtos.exemplo.json   Modelo com todos os campos (não aparece no site)
 admin/                  Painel em PHP para alterar preço e suspender/reativar anúncios
+admin/instalar.php      Primeira configuração do painel, sem Terminal (desativa-se depois)
 admin/.dados/           Credencial privada, bloqueios e backups (conteúdo fora do Git)
 img/logo.svg            Logotipo (recortado do arquivo original)
 img/marca/              Logotipo original
 img/produtos/           Fotos dos produtos
 img/icones/, favicon.ico, img/og-image.png   Ícones e imagem de compartilhamento
-ferramentas/            Gerador dos ícones e da imagem de compartilhamento
+ferramentas/            Validação do catálogo, testes e geradores (bloqueada ao público pelo .htaccess)
 robots.txt, sitemap.xml, site.webmanifest
 ```
 
@@ -49,58 +50,120 @@ Depois abra <http://localhost:5500>. Se preferir Node, `npx serve` funciona igua
 
 ## Como cadastrar produtos
 
-Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados por vírgula. Veja o modelo completo em
-`data/produtos.exemplo.json`.
+Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados por vírgula. Use como modelo os
+produtos reais do arquivo (por exemplo `higifral-confort`, `bigfral-dermaplus` e `absorvente-adultcare-plus`) ou o
+modelo genérico `data/produtos.exemplo.json`.
+
+**Regra da loja:** nenhum anúncio entra sem foto, descrição e preço. Embalagens parecidas precisam ser distinguidas
+por tamanho, quantidade de unidades, medidas e foto. Se houver dúvida sobre o que a foto mostra, pergunte ao
+proprietário antes de cadastrar.
+
+### Produto com um único preço
+
+Quando todos os tamanhos custam o mesmo, use `precoCentavos` no produto e escreva a quantidade no próprio tamanho:
 
 ```json
-[
-  {
-    "id": "fralda-geriatrica-marca-x-g",
-    "nome": "Fralda Geriátrica Marca X",
-    "categoria": "fraldas-geriatricas",
-    "marca": "Marca X",
-    "descricao": "Descrição do produto.",
-    "tamanho": ["M", "G", "XG"],
-    "imagem": "img/produtos/fralda-geriatrica-marca-x-g.jpg",
-    "variacoes": [{ "nome": "Embalagem", "opcoes": ["Pacote com 8", "Pacote com 16"] }],
-    "informacoes": [{ "rotulo": "Quantidade", "valor": "8 unidades" }],
-    "destaque": true
-  }
+{
+  "id": "higifral-confort",
+  "nome": "Fralda Higifral Confort",
+  "categoria": "fraldas-geriatricas",
+  "marca": "Higifral",
+  "descricao": "A Fralda Geriátrica Higifral Confort é destinada a pessoas adultas com incontinência urinária.",
+  "tamanho": ["M — 24 unidades", "G — 20 unidades", "XG — 18 unidades"],
+  "precoCentavos": 5490,
+  "imagens": ["img/produtos/higifral-confort.jpg", "img/produtos/higifral-confort-g.jpg", "img/produtos/higifral-confort-xg.jpg"],
+  "fotosPorOpcao": [{ "tamanho": "M", "imagem": "img/produtos/higifral-confort.jpg" }]
+}
+```
+
+Se o proprietário informou um único preço, ele vale para todos os tamanhos, mesmo que a quantidade por pacote mude.
+Não crie preços por tamanho sem confirmação.
+
+### Produto com embalagens de preços diferentes
+
+Quando o mesmo produto é vendido em pacotes com quantidades e preços diferentes, use `embalagens`. Cada embalagem
+tem preço próprio e, se quiser, a lista dos tamanhos em que existe:
+
+```json
+"tamanho": ["M", "G", "XG"],
+"embalagens": [
+  { "id": "pacote-maior",    "rotulo": "18 unidades", "tamanhos": ["M"],  "precoCentavos": 5590 },
+  { "id": "pacote-maior-g",  "rotulo": "16 unidades", "tamanhos": ["G"],  "precoCentavos": 5590 },
+  { "id": "pacote-maior-xg", "rotulo": "14 unidades", "tamanhos": ["XG"], "precoCentavos": 5180 },
+  { "id": "pacote-menor",    "rotulo": "7 unidades",  "tamanhos": ["XG"], "precoCentavos": 2590 }
 ]
 ```
+
+- Sem `tamanhos`, a embalagem vale para todos os tamanhos (ex.: Vida Nova Pants com 16 ou 32 unidades).
+- O card mostra o menor preço, com "a partir de" quando as embalagens têm preços diferentes.
+- Na página do produto, o preço acompanha a escolha. Com só o tamanho marcado, mostra o das embalagens daquele
+  tamanho. Com a embalagem marcada, mostra o preço exato.
+- O `id` da embalagem é usado pelo painel e pelo carrinho. Evite trocar o `id` de uma embalagem já publicada:
+  ajustes do painel feitos para o `id` antigo deixam de valer.
+
+### Fotos por opção
+
+`imagens` é a galeria, e a primeira foto é a capa do card. `fotosPorOpcao` liga uma foto a um tamanho, a uma
+embalagem ou aos dois. Ela vale para a foto principal da página e para a miniatura do item no carrinho:
+
+```json
+"fotosPorOpcao": [
+  { "tamanho": "G", "embalagem": "hiper-g", "imagem": "img/produtos/vida-nova-economica-g.jpg" },
+  { "embalagem": "40-unidades", "imagem": "img/produtos/absorvente-adultcare-plus-40.png" }
+]
+```
+
+Sem `fotosPorOpcao`, o site procura a foto pelo final do nome do arquivo (`-g.jpg` para G, `-p-m.jpg` para P/M).
+Os nomes podem enganar: `vida-nova-economica-g.jpg` é o pacote Hiper de 50 unidades. Confira sempre o tamanho e a
+quantidade impressos na embalagem.
+
+### Campos
 
 | Campo | Obrigatório | Para que serve |
 |---|---|---|
 | `id` | sim | Identificador único, sem espaços nem acentos. Vira o endereço `produto.html?id=...` |
 | `nome` | sim | Nome exibido |
-| `categoria` | não | `id` de uma categoria de `data/categorias.json`. Sem categoria, o produto vai para "Outros" |
-| `marca` | não | Aparece no card, na busca e no filtro de marcas |
+| `categoria` | sim | `id` de uma categoria de `data/categorias.json` |
 | `descricao` | sim | Texto da página do produto. Uma linha em branco inicia um novo parágrafo |
-| `tamanho` | não | `"G"` ou uma lista `["P", "M", "G"]`. O cliente pode escolher, e a escolha vai na mensagem do WhatsApp |
-| `precoCentavos` | para o carrinho | Preço inteiro em centavos por pacote: `5490` significa R$ 54,90. Mesmo preço para todos os tamanhos do produto |
-| `imagem` | sim* | Foto principal |
-| `imagens` | não | Fotos extras (galeria da página do produto) |
-| `variacoes` | não | Grupos de opções, como embalagem ou modelo. A escolha também vai na mensagem |
+| `imagens` | sim | Fotos do produto (a primeira é a capa) |
+| `precoCentavos` | sim, sem `embalagens` | Preço inteiro em centavos por pacote: `5490` = R$ 54,90 |
+| `embalagens` | não | Pacotes com preço próprio (veja acima) |
+| `fotosPorOpcao` | não | Foto de cada tamanho ou embalagem (veja acima) |
+| `marca` | não | Card, busca e filtro de marcas. Marca com hífen (ARO - Incofral) deve ser escrita igual em todo o catálogo |
+| `tamanho` | não | `"G — 20 unidades"` ou uma lista. O seletor só aparece quando há mais de uma opção |
 | `informacoes` | não | Tabela "Informações do produto" (`rotulo` e `valor`) |
-| `palavrasChave` | não | Termos extras para a busca encontrar o produto |
-| `destaque` | não | `true` prioriza o produto na ordenação por destaques do catálogo |
-| `ordem` | não | Número para definir a ordem manualmente (menor aparece antes) |
-| `criadoEm` | não | Data `"AAAA-MM-DD"`, usada na ordenação "Mais recentes" |
+| `palavrasChave` | não | Termos extras para a busca |
+| `destaque`, `ordem`, `criadoEm` | não | Ordenação do catálogo |
 | `ativo` | não | `false` esconde o produto sem apagá-lo |
 
-\* Pode ser substituído por uma lista `imagens`. Um anúncio só deve ser publicado quando tiver nome, descrição,
-preço e ao menos uma foto. Rode `node ferramentas/validar-catalogo.cjs` antes de publicar.
+Antes de publicar, rode a validação:
+
+```bash
+node ferramentas/validar-catalogo.cjs
+```
+
+Ela confere:
+- campos obrigatórios, fotos e preços;
+- fotos por opção que apontam para tamanhos e embalagens que existem;
+- tamanhos sem nenhuma embalagem;
+- quantidade do rótulo diferente da tabela de informações;
+- marca com hífen escrita sem o hífen.
+
+A mesma validação roda no GitHub Actions.
+
+Para conferir a interface inteira (foto, preço, carrinho e WhatsApp de todas as combinações):
+1. Suba o servidor local e abra qualquer página no navegador.
+2. Cole o conteúdo de `ferramentas/matriz-opcoes.js` no console.
+3. Aguarde a tabela.
+
+Com Node, Playwright e Chrome disponíveis, `node ferramentas/testar-carrinho.cjs` roda o teste automatizado.
 
 Dicas:
-- **Tamanhos e embalagens:** use opções como `"M — 24 unidades"` para que o cliente veja e envie a embalagem correta. Cada tamanho fica separado no carrinho.
-- **Carrinho:** permite 1 a 99 pacotes por opção, calcula em centavos e salva apenas produto, tamanho e quantidade no navegador. Ao recarregar, preços e opções são conferidos no catálogo atual. Se o navegador bloquear o armazenamento, funciona durante a página atual.
-- **Finalização:** o cliente informa seu nome no carrinho. Abre o WhatsApp com “Oi, me chamo [nome]! Gostaria dos seguintes itens:”, seguida dos itens, quantidades, subtotais, total e “Por gentileza.”. O nome não é salvo no navegador. O cliente envia a mensagem no WhatsApp. O carrinho é mantido, pois abrir o aplicativo não confirma o envio. E-mail ainda não está configurado.
-- **Fotos:** quadradas (por exemplo 800 × 800 px), fundo branco, em `img/produtos/`.
-- **Erros comuns em JSON:** vírgula sobrando depois do último item, aspas faltando. Se o catálogo parar de aparecer,
-  cole o arquivo em um validador de JSON. O console do navegador também avisa sobre produtos sem `id` ou `nome`
-  e sobre `id` repetido.
-- O botão **Consultar pelo WhatsApp** é criado sozinho para cada produto, com uma mensagem que cita o nome, a marca,
-  as opções escolhidas e o link do produto.
+- **Carrinho:** permite 1 a 99 pacotes por opção, calcula em centavos e salva no navegador apenas produto, tamanho,
+  embalagem e quantidade. Ao recarregar, preços e opções são conferidos no catálogo atual.
+- **Finalização:** o cliente informa seu nome no carrinho e abre o WhatsApp com itens, tamanho, embalagem,
+  quantidades, subtotais e total. A loja confirma disponibilidade, entrega e pagamento. Não há e-mail configurado.
+- **Fotos:** fundo branco, em `img/produtos/`.
 
 ### Categorias
 
@@ -116,66 +179,63 @@ JavaScript. Ao trocar um telefone, procure o número antigo nos arquivos `.html`
 **Instagram:** o perfil `@liguefraldas` está configurado em `js/config.js`, no cartão de contato, nos rodapés e
 em `sameAs` nos dados estruturados da página inicial. Ao trocar o perfil, atualize também os links no HTML.
 
-## Antes de publicar
+## Publicação
 
-1. **Domínio:** troque `https://www.SEU-DOMINIO.com.br` pelo endereço real em `index.html`, `catalogo.html`,
-   `produto.html`, `robots.txt` e `sitemap.xml` (procurar e substituir no editor resolve).
-2. **Hospedagem:** a vitrine funciona em hospedagem estática. O painel administrativo exige PHP 8 e, por isso, deve
-   rodar na HostGator ou em outra hospedagem PHP. O GitHub Pages publica apenas a vitrine e exclui os arquivos do admin.
-3. **404:** a maioria dessas hospedagens usa o `404.html` automaticamente.
-4. **Google:** cadastre o site no Google Search Console e envie o `sitemap.xml`. Para buscas como "fraldas geriátricas
-   Vila Isabel", o Perfil da Empresa no Google (Google Maps) com o mesmo endereço e telefones ajuda muito.
+O site está em <https://liguefraldasgeriatricas.com.br/> (HostGator, cPanel com PHP). Os endereços `canonical`,
+`og:url`, `robots.txt` e `sitemap.xml` já usam esse domínio.
 
-O catálogo (`.json`) é sempre buscado atualizado. Mudanças em CSS ou JS podem levar alguns minutos para aparecer em
-quem já visitou o site, por causa do cache do navegador.
+**Mesclar uma PR no GitHub não publica o site.** A publicação acontece no cPanel:
+
+1. **Git Version Control** → repositório `Ligue-fraldas` → **Manage** → aba **Pull or Deploy**.
+2. **Update from Remote**: traz a `main` do GitHub para o clone do cPanel, que fica fora do `public_html`.
+3. **Deploy HEAD Commit**: executa o `.cpanel.yml`, que copia os arquivos do site para `public_html`.
+4. Abra o site e confira. Se algo antigo continuar aparecendo, recarregue com Ctrl+F5 (cache do navegador).
+
+O `.cpanel.yml` só copia e sobrescreve. Ele **não apaga** de `public_html` o que foi removido do repositório: se uma
+foto ou arquivo for excluído do Git, apague-o também pelo Gerenciador de Arquivos.
+
+Estes arquivos ficam só no servidor. Estão fora do Git, então o deploy **não os apaga**:
+
+- `public_html/data/ajustes.json`: preços e suspensões feitos no painel. Ele **sobrepõe** preço e status do
+  `data/produtos.json`. Antes de investigar um preço "errado" no site, compare três coisas: o catálogo do GitHub,
+  este arquivo (se existir) e o que o cliente vê.
+- `public_html/admin/.dados/`: credenciais do painel, controle de tentativas e backups dos ajustes.
 
 ## Painel administrativo sem banco de dados
 
-O painel fica em `/admin/` e foi limitado às duas operações solicitadas:
+O painel fica em `/admin/`. Por decisão do proprietário, ele faz só duas coisas:
 
 - alterar o preço do produto ou de uma embalagem;
-- suspender e reativar o anúncio sem apagá-lo.
+- suspender e reativar o anúncio ou uma embalagem, sem apagá-los.
 
-Não é necessário MySQL. O painel guarda somente preço e status em `data/ajustes.json`, cria uma cópia de segurança
-antes de cada alteração e mantém os 30 backups mais recentes em `admin/.dados/backups/`. O catálogo principal
-`data/produtos.json` continua intacto. A gravação usa bloqueio e troca atômica para evitar que duas edições simultâneas
-corrompam os ajustes.
+Ele não cadastra, não exclui e não troca foto, nome ou descrição. Isso continua sendo feito em `data/produtos.json`,
+pelo GitHub.
 
-As credenciais não ficam no Git. Após a primeira instalação na HostGator, abra o **Terminal do cPanel**, entre na pasta
-do site e execute:
+O painel grava somente `data/ajustes.json`, com backup antes de cada alteração (os 30 mais recentes ficam em
+`admin/.dados/backups/`). Efeito das suspensões:
+- todas as embalagens de um tamanho suspensas: o tamanho some da página;
+- todas as embalagens do produto suspensas: o produto fica só com "Consultar pelo WhatsApp".
 
-```bash
-php ferramentas/gerar-credenciais-admin.php
-```
+### Primeira configuração (sem Terminal)
 
-Informe o usuário e uma senha nova com pelo menos 12 caracteres. O comando cria
-`admin/.dados/credenciais.php`, arquivo privado ignorado pelo Git. Não reutilize a senha antiga que já apareceu no
-histórico do repositório. Depois acesse `https://SEU-DOMINIO/admin/`.
+As credenciais não ficam no Git, e o painel só funciona depois de configurado. Sem Terminal no cPanel:
 
-O PHP precisa ter permissão para escrever em `data/` e `admin/.dados/`. Em uma instalação normal feita pelo mesmo
-usuário do cPanel, a permissão `755` nas pastas é suficiente. O arquivo `data/ajustes.json` será criado pelo painel.
+1. No cPanel, abra o **Gerenciador de Arquivos** e, em **Configurações**, marque **Mostrar arquivos ocultos**.
+2. Entre em `public_html/admin/.dados/` e crie o arquivo `instalar.txt`. Escreva nele um código inventado na hora,
+   com pelo menos 16 caracteres, e salve. Não use a senha do painel.
+3. Abra <https://liguefraldasgeriatricas.com.br/admin/instalar.php>. Digite o mesmo código, escolha o usuário e uma
+   senha nova com pelo menos 12 caracteres.
+4. A página grava `admin/.dados/credenciais.php` (só o hash da senha), apaga `instalar.txt` e se desativa. Depois,
+   entre em <https://liguefraldasgeriatricas.com.br/admin/>.
 
-## Puxar do GitHub para a HostGator
+O código prova que quem está configurando tem acesso ao cPanel. A página só funciona por HTTPS e enquanto não houver
+credenciais, e limita as tentativas erradas.
 
-Sim. Pelo **Git Version Control** do cPanel, clone `https://github.com/DmDepression/Ligue-fraldas` para a pasta do site.
-Também é possível usar o Terminal do cPanel em uma pasta vazia:
+Para **trocar a senha**, apague `admin/.dados/credenciais.php` pelo Gerenciador de Arquivos e repita os passos. Quem
+tiver Terminal pode rodar `php ferramentas/gerar-credenciais-admin.php` no lugar dos passos 2 e 3.
 
-```bash
-cd ~/public_html
-git clone https://github.com/DmDepression/Ligue-fraldas.git .
-```
-
-Nas próximas atualizações:
-
-```bash
-cd ~/public_html
-git pull --ff-only origin main
-```
-
-As credenciais, os backups e `data/ajustes.json` permanecem no servidor porque estão ignorados pelo Git. Assim, um
-`git pull` atualiza o catálogo e o código sem apagar os preços ou suspensões feitos pelo painel. Depois de cada
-atualização, rode `node ferramentas/validar-catalogo.cjs` se o Node estiver disponível no servidor; essa mesma
-validação já roda automaticamente no GitHub Actions.
+O PHP precisa poder escrever em `data/` e `admin/.dados/`. Pastas com permissão `755`, criadas pelo próprio usuário
+do cPanel, já bastam.
 
 ## SEO local já incluído
 
@@ -198,18 +258,3 @@ powershell -ExecutionPolicy Bypass -File ferramentas/gerar-imagens.ps1
 ```
 
 O script usa o Chrome ou o Edge instalado para gerar `img/icones/*.png`, `img/og-image.png` e o `favicon.ico`.
-
-## Embalagens (mesmo produto, pacotes diferentes)
-
-Quando o produto é igual e muda só a quantidade de unidades, use o campo `embalagens` em `data/produtos.json` em vez de criar outro produto:
-
-```json
-"embalagens": [
-  { "id": "economica-g", "rotulo": "Econômica — 30 unidades", "tamanhos": ["G"], "precoCentavos": 6990 },
-  { "id": "hiper-g", "rotulo": "Hiper — 50 unidades", "tamanhos": ["G"], "precoCentavos": 11190 }
-]
-```
-
-- `tamanhos` é opcional: sem ele, a embalagem vale para todos os tamanhos.
-- Com `embalagens`, o produto não usa `precoCentavos`: o card mostra "a partir de" e a página do produto deixa escolher tamanho e embalagem.
-- No admin, cada embalagem tem preço e suspensão próprios.
