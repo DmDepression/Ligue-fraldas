@@ -12,7 +12,10 @@
   'use strict';
   const espera = (ms) => new Promise((r) => setTimeout(r, ms));
   const arquivo = (src) => (src || '').split('/').pop().split('?')[0];
-  const ids = (await (await fetch('data/produtos.json', { cache: 'reload' })).json()).map((p) => p.id);
+  // Mesma ordem de prioridade da vitrine: catálogo do painel (data/loja.json) e, sem ele, o do Git.
+  const respostaLoja = await fetch('data/loja.json', { cache: 'reload' });
+  const fonte = respostaLoja.ok ? (await respostaLoja.json()).produtos : await (await fetch('data/produtos.json', { cache: 'reload' })).json();
+  const ids = fonte.filter((p) => p.ativo !== false).map((p) => p.id);
   const quadro = document.createElement('iframe');
   quadro.style.cssText = 'width:390px;height:800px;position:fixed;right:0;bottom:0;z-index:9999;border:2px solid #0c55ae;background:#fff';
   document.body.appendChild(quadro);

@@ -367,13 +367,25 @@
 
   var carregamento = null;
 
+  // O catálogo administrado pelo painel (data/loja.json, só na hospedagem) tem prioridade.
+  // Sem ele, vale o catálogo do Git (produtos.json + categorias.json + ajustes antigos).
+  function carregarDoGit() {
+    return Promise.all([
+      buscarJSON(C.catalogo.produtos),
+      buscarJSON(C.catalogo.categorias),
+      buscarJSONOpcional(C.catalogo.ajustes, { produtos: {} })
+    ]).then(function (r) { return montarCatalogo(aplicarAjustes(r[0], r[2]), r[1]); });
+  }
+
   L.carregarCatalogo = function () {
     if (!carregamento) {
-      carregamento = Promise.all([
-        buscarJSON(C.catalogo.produtos),
-        buscarJSON(C.catalogo.categorias),
-        buscarJSONOpcional(C.catalogo.ajustes, { produtos: {} })
-      ]).then(function (r) { return montarCatalogo(aplicarAjustes(r[0], r[2]), r[1]); })
+      carregamento = buscarJSONOpcional(C.catalogo.loja, null)
+        .then(function (loja) {
+          if (loja && Array.isArray(loja.produtos) && Array.isArray(loja.categorias)) {
+            return montarCatalogo(loja.produtos, loja.categorias);
+          }
+          return carregarDoGit();
+        })
         .catch(function (erro) {
           carregamento = null;
           if (location.protocol === 'file:') {

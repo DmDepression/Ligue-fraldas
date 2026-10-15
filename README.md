@@ -5,9 +5,10 @@ O site mostra o catálogo de produtos e leva o cliente direto para o **WhatsApp*
 O cliente monta um carrinho por tamanho e quantidade de pacotes e finaliza pelo WhatsApp, com itens,
 subtotais e total na mensagem. A loja confirma disponibilidade, entrega e pagamento. Não há pagamento online nem cadastro.
 
-É um site estático (HTML, CSS e JavaScript puros, sem etapa de build). Os produtos ficam num arquivo de dados
-(`data/produtos.json`) e as páginas são montadas automaticamente a partir dele. Para incluir produtos, basta editar
-esse arquivo. Não é preciso mexer no HTML nem "reconstruir" o site.
+É um site estático (HTML, CSS e JavaScript puros, sem etapa de build) com um painel em PHP, sem banco de dados.
+**Produtos, fotos, preços e categorias são administrados pelo painel** (`/admin/`). Ele grava o catálogo em
+`data/loja.json` e as fotos em `img/uploads/`, ambos só na hospedagem. As páginas são montadas automaticamente a partir
+desse catálogo; não é preciso mexer no HTML nem "reconstruir" o site.
 
 ## Estrutura
 
@@ -22,16 +23,19 @@ js/nucleo.js            Funções comuns: carrega os dados, monta os cards, link
 js/carrinho.js          Carrinho persistente no navegador e resumo do pedido pelo WhatsApp
 js/catalogo.js          Lógica do catálogo
 js/produto.js           Lógica da página do produto
-data/produtos.json      Produtos, tamanhos, embalagens e preços  ← editar aqui
-data/ajustes.json       Preços e suspensões do painel (criado na hospedagem; fora do Git)
-data/categorias.json    Lista de categorias
+data/loja.json          Catálogo administrado pelo painel (criado na hospedagem; fora do Git)
+data/produtos.json      Catálogo inicial do Git, importado pelo painel na primeira alteração
+data/categorias.json    Categorias iniciais, importadas junto
+data/ajustes.json       Formato antigo do painel (só lido na importação, se existir)
 data/produtos.exemplo.json   Modelo com todos os campos (não aparece no site)
-admin/                  Painel em PHP para alterar preço e suspender/reativar anúncios
+admin/                  Painel em PHP: produtos, fotos, preços, categorias, lixeira e histórico
+admin/loja.php          Leitura, validação e gravação do catálogo e das fotos
 admin/instalar.php      Primeira configuração do painel, sem Terminal (desativa-se depois)
 admin/.dados/           Credencial privada, bloqueios e backups (conteúdo fora do Git)
 img/logo.svg            Logotipo (recortado do arquivo original)
 img/marca/              Logotipo original
-img/produtos/           Fotos dos produtos
+img/produtos/           Fotos dos produtos iniciais (versionadas no Git)
+img/uploads/            Fotos enviadas pelo painel (criadas na hospedagem; fora do Git)
 img/icones/, favicon.ico, img/og-image.png   Ícones e imagem de compartilhamento
 ferramentas/            Validação do catálogo, testes e geradores (bloqueada ao público pelo .htaccess)
 robots.txt, sitemap.xml, site.webmanifest
@@ -50,7 +54,11 @@ Depois abra <http://localhost:5500>. Se preferir Node, `npx serve` funciona igua
 
 ## Como cadastrar produtos
 
-Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados por vírgula. Use como modelo os
+**No dia a dia, use o painel** (`/admin/` → Produtos → **+ Novo produto** ou **Editar**). As seções abaixo descrevem
+o formato do catálogo, o mesmo que o painel grava em `data/loja.json`. Elas ajudam a entender cada campo do
+formulário e a montar o catálogo inicial `data/produtos.json`.
+
+No arquivo, o catálogo é uma lista (`[ ... ]`) de produtos separados por vírgula. Use como modelo os
 produtos reais do arquivo (por exemplo `higifral-confort`, `bigfral-dermaplus` e `absorvente-adultcare-plus`) ou o
 modelo genérico `data/produtos.exemplo.json`.
 
@@ -196,25 +204,42 @@ foto ou arquivo for excluído do Git, apague-o também pelo Gerenciador de Arqui
 
 Estes arquivos ficam só no servidor. Estão fora do Git, então o deploy **não os apaga**:
 
-- `public_html/data/ajustes.json`: preços e suspensões feitos no painel. Ele **sobrepõe** preço e status do
-  `data/produtos.json`. Antes de investigar um preço "errado" no site, compare três coisas: o catálogo do GitHub,
-  este arquivo (se existir) e o que o cliente vê.
-- `public_html/admin/.dados/`: credenciais do painel, controle de tentativas e backups dos ajustes.
+- `public_html/data/loja.json`: o catálogo administrado pelo painel. Quando ele existe, **é o que o site mostra**;
+  o `data/produtos.json` do GitHub deixa de valer para o site.
+- `public_html/img/uploads/`: as fotos enviadas pelo painel.
+- `public_html/admin/.dados/`: credenciais do painel, controle de tentativas e o histórico (backups) do catálogo.
+
+Para conferir um preço ou foto "errado", olhe o produto no painel: ele mostra exatamente o que o site usa.
 
 ## Painel administrativo sem banco de dados
 
-O painel fica em `/admin/`. Por decisão do proprietário, ele faz só duas coisas:
+O painel fica em <https://liguefraldasgeriatricas.com.br/admin/> e administra o catálogo inteiro:
 
-- alterar o preço do produto ou de uma embalagem;
-- suspender e reativar o anúncio ou uma embalagem, sem apagá-los.
+- **Produtos:** criar, editar (nome, categoria, marca, descrição, tamanhos, preço ou embalagens com preço próprio,
+  informações, palavras para a busca, destaque), suspender, reativar e excluir. Na lista também dá para mudar o
+  preço e suspender uma embalagem sem abrir o produto.
+- **Fotos:** enviar pelo computador ou celular (JPG, PNG ou WEBP), escolher a capa, mudar a ordem e ligar uma foto a
+  um tamanho e/ou embalagem. O navegador reduz a foto antes de enviar, e o servidor confere que é uma imagem de
+  verdade e a regrava em JPEG (até 1600 px).
+- **Categorias:** criar, renomear, reordenar e apagar. Uma categoria só é apagada quando nenhum produto a usa.
+- **Lixeira:** excluir manda o produto para a lixeira, de onde ele pode ser restaurado ou excluído de vez.
+- **Histórico:** antes de cada alteração, o painel guarda uma cópia do catálogo (as 50 mais recentes). Dá para voltar
+  o catálogo inteiro a qualquer uma delas, e também baixar uma cópia do catálogo atual.
 
-Ele não cadastra, não exclui e não troca foto, nome ou descrição. Isso continua sendo feito em `data/produtos.json`,
-pelo GitHub.
+**Regra da loja garantida pelo painel:** nenhum produto é salvo sem nome, descrição, categoria, pelo menos um
+tamanho, preço (do produto ou de cada embalagem) e pelo menos uma foto.
 
-O painel grava somente `data/ajustes.json`, com backup antes de cada alteração (os 30 mais recentes ficam em
-`admin/.dados/backups/`). Efeito das suspensões:
-- todas as embalagens de um tamanho suspensas: o tamanho some da página;
-- todas as embalagens do produto suspensas: o produto fica só com "Consultar pelo WhatsApp".
+Como funciona por dentro (sem banco de dados):
+
+1. Na primeira vez, o painel mostra o catálogo atual do site, montado a partir de `data/produtos.json`,
+   `data/categorias.json` e de `data/ajustes.json` (se existir). Na primeira alteração salva, ele grava tudo em
+   `data/loja.json`.
+2. A partir daí, **o painel é o único lugar para editar produtos.** Alterar `data/produtos.json` no GitHub não muda
+   mais o site. O deploy também não apaga nada do que foi cadastrado, porque `data/loja.json` e `img/uploads/` ficam
+   fora do Git.
+3. Cada gravação é atômica e usa trava, então duas edições ao mesmo tempo não corrompem o arquivo. Se outra janela
+   salvou antes, o painel avisa e recarrega, em vez de sobrescrever.
+4. Fotos enviadas que não aparecem no catálogo nem em nenhuma versão do Histórico são apagadas depois de 30 dias.
 
 ### Primeira configuração (sem Terminal)
 
