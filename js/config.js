@@ -31,7 +31,8 @@ window.LIGUE_CONFIG = {
   },
 
   catalogo: {
-    produtos: 'data/produtos.json',
+    loja: 'data/loja.json',       // catálogo administrado pelo painel (só existe na hospedagem)
+    produtos: 'data/produtos.json', // catálogo inicial, versionado no Git
     categorias: 'data/categorias.json',
     ajustes: 'data/ajustes.json', // criado pelo painel na hospedagem; pode não existir
     porPagina: 24         // produtos por "página" no catálogo (botão "Carregar mais")

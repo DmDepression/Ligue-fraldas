@@ -20,3 +20,9 @@ admin/.dados/*
 # Ajustes de preço e status feitos pelo painel em cada hospedagem
 data/ajustes.json
 data/.ajustes-*
+
+# Catálogo e fotos administrados pelo painel: existem só na hospedagem
+data/loja.json
+data/.gravando-*
+img/uploads/*
+!img/uploads/.htaccess

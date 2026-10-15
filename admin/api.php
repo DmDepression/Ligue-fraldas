@@ -1,8 +1,9 @@
 <?php
-/* API da área administrativa: login, listagem e edição (preço / suspensão). */
+/* API da área administrativa: login, catálogo completo, fotos, categorias, lixeira e histórico. */
 declare(strict_types=1);
 
 require __DIR__ . '/config.php';
+require __DIR__ . '/loja.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -10,80 +11,20 @@ header('X-Content-Type-Options: nosniff');
 
 iniciar_sessao();
 
-function responder(array $dados, int $status = 200): void
+function responder(array $dados, int $status = 200): never
 {
     http_response_code($status);
-    echo json_encode($dados, JSON_UNESCAPED_UNICODE);
+    echo json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-function ler_produtos_base(): array
-{
-    $json = @file_get_contents(ARQUIVO_PRODUTOS);
-    $lista = $json === false ? null : json_decode($json, true);
-    if (!is_array($lista)) {
-        responder(['erro' => 'Não foi possível ler data/produtos.json.'], 500);
-    }
-    return $lista;
-}
-
-function ler_ajustes(): array
-{
-    if (!is_file(ARQUIVO_AJUSTES)) {
-        return ['produtos' => []];
-    }
-    $json = @file_get_contents(ARQUIVO_AJUSTES);
-    $ajustes = $json === false ? null : json_decode($json, true);
-    if (!is_array($ajustes) || !is_array($ajustes['produtos'] ?? null)) {
-        responder(['erro' => 'data/ajustes.json está inválido. Restaure o último backup.'], 500);
-    }
-    return $ajustes;
-}
-
-function aplicar_ajustes(array $lista, array $ajustes): array
-{
-    $porProduto = $ajustes['produtos'] ?? [];
-    foreach ($lista as &$produto) {
-        $ajuste = $porProduto[$produto['id'] ?? ''] ?? null;
-        if (!is_array($ajuste)) {
-            continue;
-        }
-        if (is_bool($ajuste['ativo'] ?? null)) {
-            $produto['ativo'] = $ajuste['ativo'];
-        }
-        if (is_int($ajuste['precoCentavos'] ?? null)) {
-            $produto['precoCentavos'] = $ajuste['precoCentavos'];
-        }
-        if (is_array($produto['embalagens'] ?? null) && is_array($ajuste['embalagens'] ?? null)) {
-            foreach ($produto['embalagens'] as &$embalagem) {
-                $ajusteEmb = $ajuste['embalagens'][$embalagem['id'] ?? ''] ?? null;
-                if (!is_array($ajusteEmb)) {
-                    continue;
-                }
-                if (is_bool($ajusteEmb['ativo'] ?? null)) {
-                    $embalagem['ativo'] = $ajusteEmb['ativo'];
-                }
-                if (is_int($ajusteEmb['precoCentavos'] ?? null)) {
-                    $embalagem['precoCentavos'] = $ajusteEmb['precoCentavos'];
-                }
-            }
-            unset($embalagem);
-        }
-    }
-    unset($produto);
-    return $lista;
-}
-
-function ler_produtos(): array
-{
-    return aplicar_ajustes(ler_produtos_base(), ler_ajustes());
-}
-
+// JSON no corpo; o envio de foto chega como formulário (multipart).
 $entrada = json_decode((string)file_get_contents('php://input'), true);
-$entrada = is_array($entrada) ? $entrada : [];
+$entrada = is_array($entrada) ? $entrada : $_POST;
 $acao = (string)($entrada['acao'] ?? ($_GET['acao'] ?? ''));
+$metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $acao !== 'sessao') {
+if ($metodo !== 'POST' && !in_array($acao, ['sessao', 'exportar'], true)) {
     responder(['erro' => 'Método não permitido.'], 405);
 }
 
@@ -122,10 +63,23 @@ if ($acao === 'login') {
 if (!esta_logado()) {
     responder(['erro' => 'Sessão expirada. Entre novamente.', 'login' => true], 401);
 }
+$_SESSION['ultimo_acesso'] = time();
+
+// Baixar uma cópia do catálogo atual (somente leitura).
+if ($acao === 'exportar') {
+    try {
+        $loja = ler_loja();
+    } catch (Throwable $erro) {
+        responder(['erro' => $erro->getMessage()], 500);
+    }
+    header('Content-Disposition: attachment; filename="catalogo-ligue-fraldas-' . date('Y-m-d') . '.json"');
+    echo json_loja($loja);
+    exit;
+}
+
 if (!hash_equals(token_csrf(), (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''))) {
     responder(['erro' => 'Token inválido. Recarregue a página.'], 403);
 }
-$_SESSION['ultimo_acesso'] = time();
 
 if ($acao === 'logout') {
     $_SESSION = [];
@@ -133,147 +87,188 @@ if ($acao === 'logout') {
     responder(['ok' => true]);
 }
 
-if ($acao === 'listar') {
-    $categorias = json_decode((string)@file_get_contents(__DIR__ . '/../data/categorias.json'), true);
-    $produtos = array_map(fn($p) => [
-        'id' => $p['id'] ?? '',
-        'nome' => $p['nome'] ?? '',
-        'categoria' => $p['categoria'] ?? '',
-        'marca' => $p['marca'] ?? '',
-        'precoCentavos' => $p['precoCentavos'] ?? null,
-        'ativo' => ($p['ativo'] ?? true) !== false,
-        'imagem' => $p['imagens'][0] ?? ($p['imagem'] ?? ''),
-        'embalagens' => array_map(fn($e) => [
-            'id' => $e['id'] ?? '',
-            'rotulo' => $e['rotulo'] ?? '',
-            'precoCentavos' => $e['precoCentavos'] ?? null,
-            'ativo' => ($e['ativo'] ?? true) !== false,
-        ], is_array($p['embalagens'] ?? null) ? $p['embalagens'] : []),
-    ], ler_produtos());
-    responder(['produtos' => $produtos, 'categorias' => is_array($categorias) ? $categorias : []]);
+/** Resposta padrão depois de qualquer leitura ou alteração: o catálogo completo. */
+function responder_loja(array $loja, array $extra = []): never
+{
+    responder(array_merge([
+        'ok' => true,
+        'versao' => $loja['versao'],
+        'atualizadoEm' => $loja['atualizadoEm'] ?? null,
+        'importado' => !is_file(ARQUIVO_LOJA),
+        'categorias' => $loja['categorias'],
+        'produtos' => $loja['produtos'],
+        'lixeira' => $loja['lixeira'],
+    ], $extra));
 }
 
-if ($acao === 'atualizar') {
-    $id = (string)($entrada['id'] ?? '');
-    $temPreco = array_key_exists('precoCentavos', $entrada);
-    $temAtivo = array_key_exists('ativo', $entrada);
-    if ($id === '' || (!$temPreco && !$temAtivo)) {
-        responder(['erro' => 'Dados inválidos.'], 400);
-    }
-    if ($temPreco) {
-        $preco = $entrada['precoCentavos'];
-        if (!is_int($preco) || $preco < 1 || $preco > 99999999) {
-            responder(['erro' => 'Preço inválido.'], 400);
+function achar_indice(array $lista, string $id): int
+{
+    foreach ($lista as $i => $item) {
+        if (($item['id'] ?? null) === $id) {
+            return $i;
         }
     }
-    if ($temAtivo && !is_bool($entrada['ativo'])) {
-        responder(['erro' => 'Valor de "ativo" inválido.'], 400);
-    }
-
-    // O catálogo do Git fica intacto; apenas o arquivo local de ajustes é alterado.
-    $bloqueio = @fopen(arquivo_bloqueio_catalogo(), 'c+');
-    if (!$bloqueio || !flock($bloqueio, LOCK_EX)) {
-        responder(['erro' => 'Não foi possível gravar (verifique a permissão das pastas data e admin/.dados).'], 500);
-    }
-    $listaBase = ler_produtos_base();
-    $original = is_file(ARQUIVO_AJUSTES)
-        ? @file_get_contents(ARQUIVO_AJUSTES)
-        : "{\n    \"produtos\": {}\n}\n";
-    $ajustes = $original === false ? null : json_decode($original, true);
-    if (!is_array($ajustes) || !is_array($ajustes['produtos'] ?? null)) {
-        flock($bloqueio, LOCK_UN);
-        fclose($bloqueio);
-        responder(['erro' => 'data/ajustes.json está inválido. Restaure o último backup.'], 500);
-    }
-
-    $embalagemId = isset($entrada['embalagem']) ? (string)$entrada['embalagem'] : null;
-    $produtoBase = null;
-    foreach ($listaBase as $produto) {
-        if (($produto['id'] ?? null) === $id) {
-            $produtoBase = $produto;
-            break;
-        }
-    }
-    if ($produtoBase === null) {
-        flock($bloqueio, LOCK_UN);
-        fclose($bloqueio);
-        responder(['erro' => 'Produto não encontrado.'], 404);
-    }
-
-    $temEmbalagens = is_array($produtoBase['embalagens'] ?? null) && count($produtoBase['embalagens']) > 0;
-    $ajustes['produtos'][$id] ??= [];
-
-    if ($embalagemId !== null) {
-        $embalagemBase = null;
-        foreach ($produtoBase['embalagens'] ?? [] as $embalagem) {
-            if (($embalagem['id'] ?? null) === $embalagemId) {
-                $embalagemBase = $embalagem;
-                break;
-            }
-        }
-        if ($embalagemBase === null) {
-            flock($bloqueio, LOCK_UN);
-            fclose($bloqueio);
-            responder(['erro' => 'Embalagem não encontrada.'], 400);
-        }
-        $ajustes['produtos'][$id]['embalagens'][$embalagemId] ??= [];
-        if ($temPreco) {
-            if ($preco === ($embalagemBase['precoCentavos'] ?? null)) {
-                unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]['precoCentavos']);
-            } else {
-                $ajustes['produtos'][$id]['embalagens'][$embalagemId]['precoCentavos'] = $preco;
-            }
-        }
-        if ($temAtivo) {
-            $ativoBase = ($embalagemBase['ativo'] ?? true) !== false;
-            if ($entrada['ativo'] === $ativoBase) {
-                unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]['ativo']);
-            } else {
-                $ajustes['produtos'][$id]['embalagens'][$embalagemId]['ativo'] = $entrada['ativo'];
-            }
-        }
-        if (!$ajustes['produtos'][$id]['embalagens'][$embalagemId]) {
-            unset($ajustes['produtos'][$id]['embalagens'][$embalagemId]);
-        }
-        if (empty($ajustes['produtos'][$id]['embalagens'])) {
-            unset($ajustes['produtos'][$id]['embalagens']);
-        }
-    } elseif ($temPreco && $temEmbalagens) {
-        flock($bloqueio, LOCK_UN);
-        fclose($bloqueio);
-        responder(['erro' => 'Este produto tem embalagens: altere o preço de cada embalagem.'], 400);
-    } else {
-        if ($temPreco) {
-            if ($preco === ($produtoBase['precoCentavos'] ?? null)) {
-                unset($ajustes['produtos'][$id]['precoCentavos']);
-            } else {
-                $ajustes['produtos'][$id]['precoCentavos'] = $preco;
-            }
-        }
-        if ($temAtivo) {
-            $ativoBase = ($produtoBase['ativo'] ?? true) !== false;
-            if ($entrada['ativo'] === $ativoBase) {
-                unset($ajustes['produtos'][$id]['ativo']);
-            } else {
-                $ajustes['produtos'][$id]['ativo'] = $entrada['ativo'];
-            }
-        }
-    }
-    if (!$ajustes['produtos'][$id]) {
-        unset($ajustes['produtos'][$id]);
-    }
-
-    try {
-        salvar_ajustes($ajustes, $original);
-    } catch (Throwable $erro) {
-        flock($bloqueio, LOCK_UN);
-        fclose($bloqueio);
-        error_log('Ligue Fraldas admin: ' . $erro->getMessage());
-        responder(['erro' => $erro->getMessage()], 500);
-    }
-    flock($bloqueio, LOCK_UN);
-    fclose($bloqueio);
-    responder(['ok' => true]);
+    throw new DadosInvalidos(['Produto não encontrado. Recarregue a página.']);
 }
 
-responder(['erro' => 'Ação desconhecida.'], 400);
+$versao = (int)($entrada['versao'] ?? -1);
+$id = (string)($entrada['id'] ?? '');
+
+try {
+    switch ($acao) {
+        case 'carregar':
+            responder_loja(ler_loja());
+
+        case 'salvarProduto':
+            $produtoEntrada = is_array($entrada['produto'] ?? null) ? $entrada['produto'] : [];
+            $idExistente = $id !== '' ? $id : null;
+            $salvo = null;
+            $loja = alterar_loja($versao, function (array $loja) use ($produtoEntrada, $idExistente, &$salvo): array {
+                $salvo = produto_do_formulario($produtoEntrada, $loja, $idExistente);
+                if ($idExistente === null) {
+                    $loja['produtos'][] = $salvo;
+                } else {
+                    $loja['produtos'][achar_indice($loja['produtos'], $idExistente)] = $salvo;
+                }
+                return $loja;
+            });
+            responder_loja($loja, ['produto' => $salvo]);
+
+        case 'alterarPreco':
+            $preco = $entrada['precoCentavos'] ?? null;
+            if (!is_int($preco) || $preco < 1 || $preco > 99999999) {
+                throw new DadosInvalidos(['Preço inválido.']);
+            }
+            $embalagem = isset($entrada['embalagem']) ? (string)$entrada['embalagem'] : null;
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id, $embalagem, $preco): array {
+                $i = achar_indice($loja['produtos'], $id);
+                $produto = &$loja['produtos'][$i];
+                if ($embalagem === null) {
+                    if (!empty($produto['embalagens'])) {
+                        throw new DadosInvalidos(['Este produto tem embalagens: altere o preço de cada embalagem.']);
+                    }
+                    $produto['precoCentavos'] = $preco;
+                } else {
+                    $produto['embalagens'][achar_indice($produto['embalagens'] ?? [], $embalagem)]['precoCentavos'] = $preco;
+                }
+                return $loja;
+            }));
+
+        case 'alternarAtivo':
+            $ativo = $entrada['ativo'] ?? null;
+            if (!is_bool($ativo)) {
+                throw new DadosInvalidos(['Situação inválida.']);
+            }
+            $embalagem = isset($entrada['embalagem']) ? (string)$entrada['embalagem'] : null;
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id, $embalagem, $ativo): array {
+                $i = achar_indice($loja['produtos'], $id);
+                if ($embalagem === null) {
+                    $alvo = &$loja['produtos'][$i];
+                } else {
+                    $alvo = &$loja['produtos'][$i]['embalagens'][achar_indice($loja['produtos'][$i]['embalagens'] ?? [], $embalagem)];
+                }
+                if ($ativo) {
+                    unset($alvo['ativo']);
+                } else {
+                    $alvo['ativo'] = false;
+                }
+                return $loja;
+            }));
+
+        case 'excluirProduto':
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id): array {
+                $i = achar_indice($loja['produtos'], $id);
+                $produto = $loja['produtos'][$i];
+                $produto['excluidoEm'] = date('c');
+                array_splice($loja['produtos'], $i, 1);
+                array_unshift($loja['lixeira'], $produto);
+                return $loja;
+            }));
+
+        case 'restaurarProduto':
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id): array {
+                $i = achar_indice($loja['lixeira'], $id);
+                $produto = $loja['lixeira'][$i];
+                unset($produto['excluidoEm']);
+                if (!in_array($produto['categoria'] ?? '', array_column($loja['categorias'], 'id'), true)) {
+                    throw new DadosInvalidos(['A categoria deste produto foi apagada. Crie-a de novo antes de restaurar.']);
+                }
+                array_splice($loja['lixeira'], $i, 1);
+                $loja['produtos'][] = $produto;
+                return $loja;
+            }));
+
+        case 'excluirDefinitivo':
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id): array {
+                array_splice($loja['lixeira'], achar_indice($loja['lixeira'], $id), 1);
+                return $loja;
+            }));
+
+        case 'salvarCategorias':
+            $lista = is_array($entrada['categorias'] ?? null) ? $entrada['categorias'] : [];
+            responder_loja(alterar_loja($versao, function (array $loja) use ($lista): array {
+                $novas = [];
+                $erros = [];
+                foreach ($lista as $c) {
+                    $nome = texto_limpo(is_array($c) ? ($c['nome'] ?? '') : '', 60);
+                    if ($nome === '') {
+                        $erros[] = 'Toda categoria precisa de um nome.';
+                        continue;
+                    }
+                    $idCategoria = is_array($c) && is_string($c['id'] ?? null) && $c['id'] !== ''
+                        && in_array($c['id'], array_column($loja['categorias'], 'id'), true)
+                        ? $c['id']
+                        : id_unico($nome, array_column($novas, 'id'));
+                    if (in_array($idCategoria, array_column($novas, 'id'), true)) {
+                        $idCategoria = id_unico($nome, array_column($novas, 'id'));
+                    }
+                    $novas[] = ['id' => $idCategoria, 'nome' => $nome];
+                }
+                $mantidas = array_column($novas, 'id');
+                foreach (array_merge($loja['produtos'], $loja['lixeira']) as $p) {
+                    if (!in_array($p['categoria'] ?? '', $mantidas, true)) {
+                        $erros[] = 'A categoria de "' . ($p['nome'] ?? $p['id']) . '" não pode ser apagada: mova ou exclua o produto antes.';
+                    }
+                }
+                if (!$novas) {
+                    $erros[] = 'Mantenha pelo menos uma categoria.';
+                }
+                if ($erros) {
+                    throw new DadosInvalidos(array_values(array_unique($erros)));
+                }
+                $loja['categorias'] = $novas;
+                return $loja;
+            }));
+
+        case 'enviarFoto':
+            $arquivo = $_FILES['foto'] ?? null;
+            if (!is_array($arquivo)) {
+                throw new DadosInvalidos(['Nenhuma foto foi recebida. A foto pode ser maior do que a hospedagem aceita.']);
+            }
+            responder(['ok' => true, 'caminho' => receber_foto($arquivo, (string)($entrada['nome'] ?? 'produto'))]);
+
+        case 'listarHistorico':
+            responder(['ok' => true, 'versoes' => listar_backups()]);
+
+        case 'restaurarVersao':
+            $dados = ler_backup((string)($entrada['arquivo'] ?? ''));
+            responder_loja(alterar_loja($versao, function (array $loja) use ($dados): array {
+                return [
+                    'versao' => $loja['versao'],
+                    'categorias' => $dados['categorias'],
+                    'produtos' => $dados['produtos'],
+                    'lixeira' => is_array($dados['lixeira'] ?? null) ? $dados['lixeira'] : [],
+                ];
+            }));
+
+        default:
+            responder(['erro' => 'Ação desconhecida.'], 400);
+    }
+} catch (ConflitoVersao $erro) {
+    responder(['erro' => $erro->getMessage(), 'conflito' => true], 409);
+} catch (DadosInvalidos $erro) {
+    responder(['erro' => $erro->getMessage(), 'erros' => $erro->erros], 422);
+} catch (Throwable $erro) {
+    error_log('Ligue Fraldas admin: ' . $erro->getMessage());
+    responder(['erro' => $erro->getMessage()], 500);
+}

@@ -28,34 +28,161 @@
   <!-- Painel -->
   <div id="tela-painel" hidden>
     <header class="topo">
-      <h1>Produtos</h1>
+      <h1>Ligue Fraldas · Painel</h1>
+      <nav class="abas" aria-label="Seções do painel">
+        <button type="button" class="aba" data-aba="produtos" aria-pressed="true">Produtos</button>
+        <button type="button" class="aba" data-aba="categorias" aria-pressed="false">Categorias</button>
+        <button type="button" class="aba" data-aba="lixeira" aria-pressed="false">Lixeira <span id="contagem-lixeira" class="bolha" hidden></span></button>
+        <button type="button" class="aba" data-aba="historico" aria-pressed="false">Histórico</button>
+      </nav>
       <div class="topo__acoes">
-        <a href="../catalogo.html" target="_blank" rel="noopener">Ver catálogo</a>
-        <button id="sair" type="button" class="btn btn--contorno">Sair</button>
+        <a href="../catalogo.html" target="_blank" rel="noopener">Ver site</a>
+        <button id="sair" type="button" class="btn btn--contorno btn--sm">Sair</button>
       </div>
     </header>
 
-    <section class="filtros" aria-label="Filtros">
-      <input id="busca" type="search" placeholder="Buscar produto ou marca…" aria-label="Buscar produto">
-      <select id="filtro-categoria" aria-label="Categoria"></select>
-      <select id="filtro-status" aria-label="Situação">
-        <option value="">Todos</option>
-        <option value="ativos">Ativos</option>
-        <option value="suspensos">Suspensos</option>
-      </select>
-      <span id="contagem" class="contagem"></span>
+    <p id="aviso" class="aviso" role="status" hidden></p>
+    <p id="aviso-importado" class="aviso aviso--info" hidden>
+      Este é o catálogo atual do site. Ele passa a ser administrado por aqui a partir da primeira alteração salva.
+    </p>
+
+    <!-- Produtos -->
+    <section id="secao-produtos" data-secao="produtos">
+      <div class="filtros">
+        <input id="busca" type="search" placeholder="Buscar produto ou marca…" aria-label="Buscar produto">
+        <select id="filtro-categoria" aria-label="Categoria"></select>
+        <select id="filtro-status" aria-label="Situação">
+          <option value="">Todos</option>
+          <option value="ativos">Ativos</option>
+          <option value="suspensos">Suspensos</option>
+        </select>
+        <span id="contagem" class="contagem"></span>
+        <button id="novo-produto" type="button" class="btn btn--primario">+ Novo produto</button>
+      </div>
+      <div class="tabela-area">
+        <table class="tabela">
+          <thead>
+            <tr><th>Produto</th><th>Categoria</th><th>Preço (R$)</th><th>Situação</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="linhas"></tbody>
+        </table>
+      </div>
     </section>
 
-    <p id="aviso" class="aviso" role="status" hidden></p>
+    <!-- Editor de produto -->
+    <section id="secao-editor" data-secao="editor" hidden>
+      <form id="form-produto" class="editor" novalidate>
+        <div class="editor__topo">
+          <h2 id="editor-titulo">Novo produto</h2>
+          <div class="editor__botoes">
+            <button type="button" class="btn btn--contorno" data-cancelar>Cancelar</button>
+            <button type="submit" class="btn btn--primario">Salvar produto</button>
+          </div>
+        </div>
+        <div id="editor-erros" class="erros" role="alert" hidden></div>
 
-    <div class="tabela-area">
-      <table class="tabela">
-        <thead>
-          <tr><th>Produto</th><th>Categoria</th><th>Preço (R$)</th><th>Situação</th></tr>
-        </thead>
-        <tbody id="linhas"></tbody>
-      </table>
-    </div>
+        <fieldset class="bloco">
+          <legend>Dados do anúncio</legend>
+          <div class="grade">
+            <label class="campo campo--largo">Nome *
+              <input name="nome" maxlength="120" required placeholder="Ex.: Fralda Higifral Confort">
+            </label>
+            <label class="campo">Categoria *
+              <select name="categoria" required></select>
+            </label>
+            <label class="campo">Marca
+              <input name="marca" maxlength="60" placeholder="Ex.: Higifral">
+            </label>
+            <label class="campo campo--largo">Descrição *
+              <textarea name="descricao" rows="5" maxlength="3000" required></textarea>
+            </label>
+            <label class="campo campo--largo">Palavras para a busca <small>(separadas por vírgula, opcional)</small>
+              <input name="palavrasChave" maxlength="400" placeholder="Ex.: geriátrica, adulto, noturna">
+            </label>
+            <label class="marcar"><input type="checkbox" name="ativo"> Anúncio ativo (aparece no site)</label>
+            <label class="marcar"><input type="checkbox" name="destaque"> Destaque (aparece primeiro no catálogo)</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="bloco">
+          <legend>Tamanhos *</legend>
+          <p class="dica">Um por linha. Inclua a quantidade quando ajudar a distinguir o pacote: <em>M — 24 unidades</em>. Sem tamanhos, use <em>Único</em>.</p>
+          <ul id="lista-tamanhos" class="linhas-editaveis"></ul>
+          <button type="button" class="btn btn--contorno btn--sm" data-adicionar="tamanho">+ Tamanho</button>
+        </fieldset>
+
+        <fieldset class="bloco">
+          <legend>Preço *</legend>
+          <label class="marcar"><input type="radio" name="modoPreco" value="unico"> Um preço para todos os tamanhos</label>
+          <label class="marcar"><input type="radio" name="modoPreco" value="embalagens"> Preço por embalagem (pacotes com quantidades e preços diferentes)</label>
+          <div id="preco-unico" class="preco-unico">
+            <label class="campo">Preço por pacote (R$)
+              <input name="preco" inputmode="decimal" placeholder="54,90">
+            </label>
+          </div>
+          <div id="preco-embalagens" hidden>
+            <p class="dica">Desmarque os tamanhos em que a embalagem não existe. Todos marcados = vale para todos.</p>
+            <ul id="lista-embalagens" class="embalagens"></ul>
+            <button type="button" class="btn btn--contorno btn--sm" data-adicionar="embalagem">+ Embalagem</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="bloco">
+          <legend>Fotos *</legend>
+          <p class="dica">A primeira foto é a capa do card. Se uma foto for de um tamanho ou embalagem específicos, escolha abaixo dela: o site troca a foto quando o cliente escolher essa opção (e mostra a mesma no carrinho).</p>
+          <ul id="lista-fotos" class="fotos"></ul>
+          <label class="btn btn--contorno btn--sm enviar-foto">
+            + Enviar fotos
+            <input id="enviar-fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+          </label>
+          <p id="envio-status" class="dica" role="status"></p>
+        </fieldset>
+
+        <fieldset class="bloco">
+          <legend>Informações do produto <small>(opcional)</small></legend>
+          <p class="dica">Ex.: <em>Tamanho M</em> → <em>24 unidades · 40 a 70 kg · cintura de 75 a 110 cm</em></p>
+          <ul id="lista-informacoes" class="linhas-editaveis"></ul>
+          <button type="button" class="btn btn--contorno btn--sm" data-adicionar="informacao">+ Informação</button>
+        </fieldset>
+
+        <div class="editor__rodape">
+          <button type="button" class="btn btn--contorno" data-cancelar>Cancelar</button>
+          <button type="submit" class="btn btn--primario">Salvar produto</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Categorias -->
+    <section id="secao-categorias" data-secao="categorias" hidden>
+      <div class="painel-caixa">
+        <h2>Categorias</h2>
+        <p class="dica">A ordem aqui é a ordem do filtro do site. Só aparecem no site as categorias com produtos. Uma categoria só pode ser apagada quando nenhum produto (nem da lixeira) a usa.</p>
+        <ul id="lista-categorias" class="linhas-editaveis"></ul>
+        <div class="acoes-linha">
+          <button type="button" class="btn btn--contorno btn--sm" data-adicionar="categoria">+ Categoria</button>
+          <button type="button" id="salvar-categorias" class="btn btn--primario">Salvar categorias</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lixeira -->
+    <section id="secao-lixeira" data-secao="lixeira" hidden>
+      <div class="painel-caixa">
+        <h2>Lixeira</h2>
+        <p class="dica">Produtos excluídos ficam aqui e não aparecem no site. Restaure ou exclua de vez.</p>
+        <ul id="lista-lixeira" class="lista-simples"></ul>
+      </div>
+    </section>
+
+    <!-- Histórico -->
+    <section id="secao-historico" data-secao="historico" hidden>
+      <div class="painel-caixa">
+        <h2>Histórico</h2>
+        <p class="dica">Antes de cada alteração, o painel guarda uma cópia do catálogo (as 50 mais recentes). Restaurar volta produtos, categorias e lixeira para aquele momento; a versão atual também fica guardada.</p>
+        <p><a class="btn btn--contorno btn--sm" href="api.php?acao=exportar">Baixar cópia do catálogo atual</a></p>
+        <ul id="lista-historico" class="lista-simples"></ul>
+      </div>
+    </section>
   </div>
 
   <script src="admin.js"></script>

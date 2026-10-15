@@ -2,13 +2,14 @@
 /* Configuração interna da área administrativa (HostGator / PHP 8+). */
 declare(strict_types=1);
 
-// O catálogo continua em JSON: este painel não exige banco de dados.
+date_default_timezone_set('America/Sao_Paulo');
+
+// O catálogo fica em JSON (veja loja.php): este painel não exige banco de dados.
 const ARQUIVO_PRODUTOS = __DIR__ . '/../data/produtos.json';
-const ARQUIVO_AJUSTES = __DIR__ . '/../data/ajustes.json';
+const ARQUIVO_AJUSTES = __DIR__ . '/../data/ajustes.json'; // formato antigo, só lido na importação
 const PASTA_DADOS = __DIR__ . '/.dados';
 const ARQUIVO_CREDENCIAIS = PASTA_DADOS . '/credenciais.php';
 const PASTA_BACKUPS = PASTA_DADOS . '/backups';
-const MAX_BACKUPS = 30;
 
 const MAX_TENTATIVAS = 5;      // erros de login permitidos...
 const JANELA_TENTATIVAS = 900; // ...dentro de 15 minutos, por IP
@@ -149,50 +150,4 @@ function arquivo_bloqueio_catalogo(): string
 {
     garantir_pasta(PASTA_DADOS);
     return PASTA_DADOS . '/catalogo.lock';
-}
-
-/**
- * Cria um backup e substitui os ajustes por renomeação atômica. Se qualquer
- * etapa falhar, o arquivo publicado continua intacto.
- */
-function salvar_ajustes(array $ajustes, string $conteudoOriginal): void
-{
-    if (!garantir_pasta(PASTA_BACKUPS)) {
-        throw new RuntimeException('Não foi possível criar a pasta de backups do painel.');
-    }
-
-    $sufixo = date('Ymd-His') . '-' . bin2hex(random_bytes(3));
-    $backup = PASTA_BACKUPS . '/ajustes-' . $sufixo . '.json';
-    if (@file_put_contents($backup, $conteudoOriginal, LOCK_EX) === false) {
-        throw new RuntimeException('Não foi possível criar a cópia de segurança do catálogo.');
-    }
-
-    $json = json_encode(
-        $ajustes,
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
-    ) . "\n";
-    $temporario = @tempnam(dirname(ARQUIVO_AJUSTES), '.ajustes-');
-    if ($temporario === false) {
-        @unlink($backup);
-        throw new RuntimeException('Não foi possível preparar a atualização do catálogo.');
-    }
-
-    try {
-        if (@file_put_contents($temporario, $json, LOCK_EX) === false) {
-            throw new RuntimeException('Não foi possível gravar a atualização do catálogo.');
-        }
-        @chmod($temporario, 0644);
-        if (!@rename($temporario, ARQUIVO_AJUSTES)) {
-            throw new RuntimeException('Não foi possível publicar a atualização do catálogo.');
-        }
-    } catch (Throwable $erro) {
-        @unlink($temporario);
-        throw $erro;
-    }
-
-    $backups = glob(PASTA_BACKUPS . '/ajustes-*.json') ?: [];
-    usort($backups, fn(string $a, string $b): int => filemtime($b) <=> filemtime($a));
-    foreach (array_slice($backups, MAX_BACKUPS) as $antigo) {
-        @unlink($antigo);
-    }
 }
