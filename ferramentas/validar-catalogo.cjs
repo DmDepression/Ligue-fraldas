@@ -51,13 +51,47 @@ produtos.forEach((produto, indice) => {
     }
   });
 
+  const tamanhos = [].concat(produto.tamanho ?? produto.tamanhos ?? []);
+  const codigo = (rotulo) => String(rotulo || '').split(/[—–]/)[0].trim();
+  const embalagens = Array.isArray(produto.embalagens) ? produto.embalagens : [];
+  const idsEmbalagens = new Set(embalagens.map((e) => e && e.id));
+
   (produto.fotosPorOpcao || []).forEach((foto) => {
     if (!foto || !imagens.includes(foto.imagem)) {
       erros.push(`${ref}: foto de opção não encontrada na galeria.`);
+      return;
+    }
+    if (foto.tamanho && !tamanhos.some((t) => codigo(t) === foto.tamanho)) {
+      erros.push(`${ref}: foto de opção aponta para o tamanho inexistente ${foto.tamanho}.`);
+    }
+    if (foto.embalagem && !idsEmbalagens.has(foto.embalagem)) {
+      erros.push(`${ref}: foto de opção aponta para a embalagem inexistente ${foto.embalagem}.`);
     }
   });
 
-  const embalagens = Array.isArray(produto.embalagens) ? produto.embalagens : [];
+  // Uma embalagem só pode valer para tamanhos que o produto oferece, e cada tamanho
+  // precisa de ao menos uma embalagem (senão o cliente escolhe e não consegue comprar).
+  embalagens.forEach((embalagem) => {
+    (embalagem && embalagem.tamanhos || []).forEach((t) => {
+      if (!tamanhos.includes(t)) erros.push(`${ref}: embalagem ${embalagem.id} usa o tamanho inexistente ${t}.`);
+    });
+  });
+  // Quantidade do rótulo ("M — 10 unidades") e da tabela de informações precisam bater.
+  tamanhos.forEach((t) => {
+    const noRotulo = String(t).match(/(\d+)\s*unidades/);
+    const info = (produto.informacoes || []).find((i) => i && i.rotulo === `Tamanho ${codigo(t)}`);
+    const naInfo = info && String(info.valor).match(/(\d+)\s*unidades/);
+    if (noRotulo && naInfo && noRotulo[1] !== naInfo[1]) {
+      erros.push(`${ref}: tamanho ${codigo(t)} diz ${noRotulo[1]} unidades no rótulo e ${naInfo[1]} nas informações.`);
+    }
+  });
+
+  if (embalagens.length) {
+    tamanhos.forEach((t) => {
+      const temEmbalagem = embalagens.some((e) => !e.tamanhos || !e.tamanhos.length || e.tamanhos.includes(t));
+      if (!temEmbalagem) erros.push(`${ref}: o tamanho ${t} não tem nenhuma embalagem.`);
+    });
+  }
   if (embalagens.length) {
     const embalagemIds = new Set();
     embalagens.forEach((embalagem) => {
@@ -71,6 +105,19 @@ produtos.forEach((produto, indice) => {
   } else if (!Number.isInteger(produto.precoCentavos) || produto.precoCentavos < 1) {
     erros.push(`${ref}: falta preço válido.`);
   }
+});
+
+// Marcas com hífen (ex.: "ARO - Incofral") devem aparecer sempre assim, em todos os produtos.
+const marcasComHifen = [...new Set(produtos.map((p) => p && p.marca).filter((m) => typeof m === 'string' && m.includes(' - ')))];
+marcasComHifen.forEach((marca) => {
+  const semHifen = marca.replace(/\s+-\s+/g, ' ');
+  produtos.forEach((p) => {
+    ['nome', 'marca', 'descricao'].forEach((campo) => {
+      if (typeof p[campo] === 'string' && p[campo].includes(semHifen)) {
+        erros.push(`produto ${p.id}: "${semHifen}" sem hífen em ${campo}; use "${marca}".`);
+      }
+    });
+  });
 });
 
 if (erros.length) {

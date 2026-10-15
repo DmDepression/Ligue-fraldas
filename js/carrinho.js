@@ -76,8 +76,10 @@
       var subtotal = d.preco * item.quantidade;
       quantidade += item.quantidade;
       total += subtotal;
+      // Foto da opção comprada (ex.: Bigfral XG com 7 unidades), não a capa do produto.
+      var foto = L.fotoDaOpcao(p, item.tamanho, item.embalagem) || p.imagens[0];
       return '<li class="carrinho-item">' +
-        L.imagemProduto(p.imagens[0], p.nome, 'width="72" height="72"') +
+        L.imagemProduto(foto, p.nome + ', ' + d.descricao, 'width="72" height="72"') +
         '<div class="carrinho-item__info"><a href="' + L.urlProduto(p.id) + '"><strong>' + L.esc(p.nome) + '</strong></a>' +
         '<p>' + L.esc(d.descricao) + '</p><p>' + L.moeda(d.preco) + ' por pacote</p>' +
         '<div class="carrinho-item__controles"><label>Pacotes <input type="number" min="1" max="99" step="1" value="' + item.quantidade + '"' +

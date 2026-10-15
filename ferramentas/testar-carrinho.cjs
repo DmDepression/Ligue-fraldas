@@ -97,7 +97,8 @@ const http = require('node:http');
       assert.ok((await page.locator('[data-preco]').innerText()).includes(preco));
     }
     await ir('/produto.html?id=bigfral-dermaplus');
-    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s55,90/);
+    // Sem escolha, o preço parte do pacote mais barato (XG com 7 unidades).
+    assert.match(await page.locator('[data-preco]').innerText(), /a partir de\s+R\$\s25,90/);
     const precoBigfral = async () => page.locator('[data-preco]').innerText();
     const fotoBigfral = async () => page.locator('[data-imagem-principal] img').getAttribute('src');
     await page.locator('input[data-grupo="Tamanho"][value="M"]').check();
@@ -109,6 +110,8 @@ const http = require('node:http');
     assert.match(await precoBigfral(), /R\$\s55,90/);
     assert.match(await fotoBigfral(), /bigfral-dermaplus-g\.jpg$/);
     await page.locator('input[data-grupo="Tamanho"][value="XG"]').check();
+    // Só o tamanho XG marcado: não pode mostrar o preço do M/G.
+    assert.match(await precoBigfral(), /a partir de\s+R\$\s25,90/);
     await page.locator('input[data-grupo="Embalagem"][value="pacote-maior-xg"]').check();
     assert.match(await precoBigfral(), /R\$\s51,80/);
     assert.match(await fotoBigfral(), /bigfral-dermaplus-xg\.jpg$/);
@@ -125,6 +128,8 @@ const http = require('node:http');
     await page.waitForFunction(() => document.querySelector('#carrinho').open);
     await total('R$ 180,70');
     assert.match(await page.locator('#carrinho').innerText(), /XG · 7 unidades/);
+    // A foto do item no carrinho é a da embalagem comprada, não a capa do produto.
+    assert.match(await page.locator('.carrinho-item').last().locator('img').getAttribute('src'), /bigfral-dermaplus-xg-7\.png$/);
     await page.locator('[data-remover="2"]').click();
     await total('R$ 154,80');
     await fechar();

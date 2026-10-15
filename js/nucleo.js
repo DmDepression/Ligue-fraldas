@@ -169,11 +169,22 @@
       return { id: eid, rotulo: rotulo, precoCentavos: e.precoCentavos, tamanhos: lista(e.tamanhos).map(texto).filter(Boolean) };
     }).filter(Boolean);
 
-    var embalagemDestaque = embalagens.find(function (e) { return e.id === texto(bruto.embalagemDestaque); });
-    var preco = Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null;
+    var tamanhos = lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean);
+    var declarouEmbalagens = lista(bruto.embalagens).length > 0;
     if (embalagens.length) {
-      // Usa a embalagem principal quando definida; nos demais casos, mostra o menor preço.
-      preco = embalagemDestaque ? embalagemDestaque.precoCentavos : Math.min.apply(null, embalagens.map(function (e) { return e.precoCentavos; }));
+      // Um tamanho cujas embalagens foram todas suspensas no painel deixa de ser oferecido.
+      tamanhos = tamanhos.filter(function (t) {
+        return embalagens.some(function (e) { return !e.tamanhos.length || e.tamanhos.indexOf(t) !== -1; });
+      });
+    }
+
+    var preco = Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null;
+    if (declarouEmbalagens && !embalagens.length) {
+      // Todas as embalagens suspensas: não vender sem saber a quantidade do pacote.
+      preco = null;
+    } else if (embalagens.length) {
+      // Com embalagens, o preço-base é o menor; card e página mostram "a partir de" quando variam.
+      preco = Math.min.apply(null, embalagens.map(function (e) { return e.precoCentavos; }));
     }
 
     return {
@@ -184,9 +195,7 @@
       descricao: texto(bruto.descricao),
       precoCentavos: preco,
       embalagens: embalagens,
-      precosDiferem: embalagens.some(function (e) { return e.precoCentavos !== preco; }),
-      mostrarPrecoAPartir: bruto.mostrarPrecoAPartir !== false,
-      tamanhos: lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean),
+      tamanhos: tamanhos,
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
       imagens: imagens,
@@ -285,6 +294,49 @@
 
   L.embalagemCompativel = function (embalagem, tamanho) {
     return !embalagem.tamanhos.length || embalagem.tamanhos.indexOf(tamanho) !== -1;
+  };
+
+  // Preço a exibir para a escolha atual. Sem embalagem escolhida, considera só as
+  // embalagens que existem para o tamanho marcado (ou todas, sem tamanho).
+  // Retorna { centavos, aPartirDe } ou null.
+  L.precoDaEscolha = function (p, tamanho, embalagemId) {
+    if (!p || !p.precoCentavos) return null;
+    if (!p.embalagens.length) return { centavos: p.precoCentavos, aPartirDe: false };
+    var escolhida = embalagemId && p.embalagens.find(function (e) { return e.id === embalagemId; });
+    if (escolhida) return { centavos: escolhida.precoCentavos, aPartirDe: false };
+    var opcoes = p.embalagens.filter(function (e) { return !tamanho || L.embalagemCompativel(e, tamanho); });
+    if (!opcoes.length) return null;
+    var precos = opcoes.map(function (e) { return e.precoCentavos; });
+    var menor = Math.min.apply(null, precos);
+    return { centavos: menor, aPartirDe: precos.some(function (v) { return v !== menor; }) };
+  };
+
+  function codigoTamanho(rotulo) {
+    return L.normalizar(String(rotulo || '').split(/[—–]/)[0]).replace(/\s+/g, '').replace(/\//g, '-');
+  }
+
+  // Foto da opção escolhida: primeiro `fotosPorOpcao` (tamanho + embalagem, só embalagem,
+  // só tamanho); depois o sufixo do arquivo (ex.: "-g.jpg" para o tamanho G).
+  // Retorna o caminho da foto ou '' quando nenhuma foto é específica da escolha.
+  L.fotoDaOpcao = function (p, tamanho, embalagemId) {
+    var codigo = codigoTamanho(tamanho);
+    var fotos = p.fotosPorOpcao || [];
+    var foto = null;
+    if (codigo && embalagemId) {
+      foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && f.embalagem === embalagemId; });
+    }
+    if (!foto && embalagemId) {
+      foto = fotos.find(function (f) { return !f.tamanho && f.embalagem === embalagemId; });
+    }
+    if (!foto && codigo) {
+      foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && !f.embalagem; });
+    }
+    if (foto) return foto.imagem;
+    if (!codigo) return '';
+    return p.imagens.find(function (src) {
+      var nome = L.normalizar(src.split('/').pop().replace(/\.[^.]+$/, ''));
+      return nome.endsWith('-' + codigo);
+    }) || '';
   };
 
   // Confere a escolha (tamanho + embalagem) contra o catálogo atual e devolve o preço real.
@@ -397,6 +449,7 @@
     var h = 'h' + (nivel || 3);
     var categoria = catalogo.categoria(p.categoria);
     var url = L.urlProduto(p.id);
+    var precoCard = L.precoDaEscolha(p);
     var somenteTamanhoUnico = p.tamanhos.length === 1 && L.normalizar(p.tamanhos[0]) === 'unico';
     var mostrarEmbalagens = somenteTamanhoUnico && p.embalagens.length > 1;
     var opcoesResumo = mostrarEmbalagens
@@ -418,7 +471,7 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           etiquetas +
-          (p.precoCentavos ? '<p class="produto-preco">' + (p.precosDiferem && p.mostrarPrecoAPartir ? '<small>a partir de </small>' : '') + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
+          (precoCard ? '<p class="produto-preco">' + (precoCard.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(precoCard.centavos) + '<small>por pacote</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
           (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>' + (somenteTamanhoUnico ? 'Escolher embalagem' : 'Escolher tamanho e embalagem') + '</span></a>' : '') +

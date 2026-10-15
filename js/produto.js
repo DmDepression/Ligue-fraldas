@@ -74,38 +74,16 @@
       document.body.classList.add('com-barra-produto');
     }
 
-    function textoPreco(p, embalagem) {
-      var valor = embalagem ? embalagem.precoCentavos : p.precoCentavos;
-      return (!embalagem && p.precosDiferem && p.mostrarPrecoAPartir ? '<small>a partir de </small>' : '') + L.moeda(valor) + '<small>por pacote</small>';
-    }
-
-    function codigoTamanho(rotulo) {
-      return L.normalizar(String(rotulo || '').split(/[—–]/)[0]).replace(/\s+/g, '').replace(/\//g, '-');
-    }
-
-    function imagemDoTamanho(p, tamanho) {
-      var codigo = codigoTamanho(tamanho);
-      if (!codigo) return -1;
-      return p.imagens.findIndex(function (src) {
-        var nome = L.normalizar(src.split('/').pop().replace(/\.[^.]+$/, ''));
-        return nome.endsWith('-' + codigo);
-      });
+    // O preço acompanha a escolha: com só o tamanho marcado, mostra o das embalagens
+    // daquele tamanho (ex.: Bigfral XG custa a partir de R$ 25,90, não R$ 55,90).
+    function textoPreco(p, tamanho, embalagemId) {
+      var preco = L.precoDaEscolha(p, tamanho, embalagemId);
+      if (!preco) return '';
+      return (preco.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(preco.centavos) + '<small>por pacote</small>';
     }
 
     function imagemDasOpcoes(p, tamanho, embalagem) {
-      var codigo = codigoTamanho(tamanho);
-      var fotos = p.fotosPorOpcao || [];
-      var foto = null;
-      if (codigo && embalagem) {
-        foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && f.embalagem === embalagem; });
-      }
-      if (!foto && embalagem) {
-        foto = fotos.find(function (f) { return !f.tamanho && f.embalagem === embalagem; });
-      }
-      if (!foto && codigo) {
-        foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && !f.embalagem; });
-      }
-      return foto ? p.imagens.indexOf(foto.imagem) : imagemDoTamanho(p, tamanho);
+      return p.imagens.indexOf(L.fotoDaOpcao(p, tamanho, embalagem));
     }
 
     function selecionarImagem(p, indice) {
@@ -229,9 +207,8 @@
       var disponiveis = radios.filter(function (r) { return !r.disabled; });
       if (tamanhoMarcado && disponiveis.length === 1) disponiveis[0].checked = true;
       var marcada = radios.find(function (r) { return r.checked; });
-      var embalagem = marcada ? p.embalagens.find(function (e) { return e.id === marcada.value; }) : null;
       var preco = alvo.querySelector('[data-preco]');
-      if (preco) preco.innerHTML = textoPreco(p, embalagem);
+      if (preco) preco.innerHTML = textoPreco(p, tamanho, marcada ? marcada.value : '');
     }
 
     function ligarOpcoes(p) {
