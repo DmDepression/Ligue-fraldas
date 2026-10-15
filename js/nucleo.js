@@ -149,6 +149,16 @@
       if (src && imagens.indexOf(src) === -1) imagens.push(src);
     });
 
+    // Liga a foto ao tamanho e/ou à embalagem quando o nome do arquivo não basta.
+    var fotosPorOpcao = lista(bruto.fotosPorOpcao).map(function (foto) {
+      if (!foto || typeof foto !== 'object') return null;
+      var tamanho = texto(foto.tamanho);
+      var embalagem = texto(foto.embalagem);
+      var imagem = texto(foto.imagem);
+      if ((!tamanho && !embalagem) || imagens.indexOf(imagem) === -1) return null;
+      return { tamanho: tamanho, embalagem: embalagem, imagem: imagem };
+    }).filter(Boolean);
+
     // Embalagens: mesmo produto vendido em pacotes com quantidades (e preços) diferentes.
     // [{ id, rotulo, precoCentavos, tamanhos?: ['G'], ativo?: false }]
     var embalagens = lista(bruto.embalagens).map(function (e) {
@@ -180,6 +190,7 @@
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
       imagens: imagens,
+      fotosPorOpcao: fotosPorOpcao,
       palavrasChave: lista(bruto.palavrasChave).map(texto).filter(Boolean),
       destaque: bruto.destaque === true,
       ordem: numero(bruto.ordem, Infinity),
