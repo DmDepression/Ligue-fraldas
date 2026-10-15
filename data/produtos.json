@@ -703,7 +703,7 @@
     "id": "absorvente-aro-incofral-basic",
     "nome": "Absorvente ARO - Incofral Basic",
     "categoria": "absorventes",
-    "marca": "ARO Incofral",
+    "marca": "ARO - Incofral",
     "descricao": "O Absorvente Geriátrico ARO Incofral Basic é indicado para pessoas com incontinência urinária e também para situações de pós-parto e pós-operatório. Pode ser usado por homens e mulheres e possui material hipoalergênico.",
     "tamanho": [
       "Único — 60 unidades"
@@ -729,9 +729,9 @@
   },
   {
     "id": "protetor-aro-incofral-basic-m",
-    "nome": "Protetor ARO Incofral Basic M",
+    "nome": "Protetor ARO - Incofral Basic M",
     "categoria": "protetores",
-    "marca": "ARO Incofral",
+    "marca": "ARO - Incofral",
     "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
       "M — 6 unidades"
@@ -752,9 +752,9 @@
   },
   {
     "id": "protetor-aro-incofral-basic-g",
-    "nome": "Protetor ARO Incofral Basic G",
+    "nome": "Protetor ARO - Incofral Basic G",
     "categoria": "protetores",
-    "marca": "ARO Incofral",
+    "marca": "ARO - Incofral",
     "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
       "G — 5 unidades"
