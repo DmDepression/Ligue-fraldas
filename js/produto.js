@@ -190,18 +190,19 @@
     // Mostra só as embalagens que existem para o tamanho escolhido e atualiza o preço.
     function ajustarEmbalagens(p, form) {
       if (!form || !p.embalagens.length) return;
-      var tamanho = form.querySelector('input[data-grupo="Tamanho"]:checked');
+      var tamanhoMarcado = form.querySelector('input[data-grupo="Tamanho"]:checked');
+      var tamanho = tamanhoMarcado ? tamanhoMarcado.value : (p.tamanhos.length === 1 ? p.tamanhos[0] : '');
       var radios = Array.from(form.querySelectorAll('input[data-grupo="Embalagem"]'));
       radios.forEach(function (r) {
         var permitidos = r.getAttribute('data-tamanhos');
-        var ok = !permitidos || (tamanho && permitidos.split('|').indexOf(tamanho.value) !== -1);
+        var ok = !permitidos || (tamanho && permitidos.split('|').indexOf(tamanho) !== -1);
         r.disabled = !ok;
-        r.closest('.opcao').hidden = !ok && !!tamanho;
+        r.closest('.opcao').hidden = !ok && !!tamanhoMarcado;
         r.closest('.opcao').classList.toggle('opcao--indisponivel', !ok);
         if (!ok && r.checked) r.checked = false;
       });
       var disponiveis = radios.filter(function (r) { return !r.disabled; });
-      if (tamanho && disponiveis.length === 1) disponiveis[0].checked = true;
+      if (tamanhoMarcado && disponiveis.length === 1) disponiveis[0].checked = true;
       var marcada = radios.find(function (r) { return r.checked; });
       var embalagem = marcada ? p.embalagens.find(function (e) { return e.id === marcada.value; }) : null;
       var preco = alvo.querySelector('[data-preco]');
