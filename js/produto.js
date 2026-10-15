@@ -92,11 +92,27 @@
       });
     }
 
+    function imagemDasOpcoes(p, tamanho, embalagem) {
+      var codigo = codigoTamanho(tamanho);
+      var fotos = p.fotosPorOpcao || [];
+      var foto = null;
+      if (codigo && embalagem) {
+        foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && f.embalagem === embalagem; });
+      }
+      if (!foto && embalagem) {
+        foto = fotos.find(function (f) { return !f.tamanho && f.embalagem === embalagem; });
+      }
+      if (!foto && codigo) {
+        foto = fotos.find(function (f) { return codigoTamanho(f.tamanho) === codigo && !f.embalagem; });
+      }
+      return foto ? p.imagens.indexOf(foto.imagem) : imagemDoTamanho(p, tamanho);
+    }
+
     function selecionarImagem(p, indice) {
       if (indice < 0 || indice >= p.imagens.length) return;
       var principal = alvo.querySelector('[data-imagem-principal]');
       if (!principal) return;
-      principal.innerHTML = L.imagemProduto(p.imagens[indice], p.nome + ' — imagem do tamanho selecionado', 'width="800" height="800"');
+      principal.innerHTML = L.imagemProduto(p.imagens[indice], p.nome + ' — imagem da opção selecionada', 'width="800" height="800"');
       alvo.querySelectorAll('.miniatura').forEach(function (botao) {
         botao.setAttribute('aria-pressed', String(Number(botao.getAttribute('data-imagem')) === indice));
       });
@@ -218,8 +234,10 @@
               return { nome: input.getAttribute('data-grupo'), valor: input.getAttribute('data-rotulo') || input.value };
             })
           : [];
-        var tamanho = form && form.querySelector('input[data-grupo="Tamanho"]:checked');
-        if (tamanho) selecionarImagem(p, imagemDoTamanho(p, tamanho.value));
+        var tamanhoMarcado = form && form.querySelector('input[data-grupo="Tamanho"]:checked');
+        var tamanho = tamanhoMarcado ? tamanhoMarcado.value : (p.tamanhos.length === 1 ? p.tamanhos[0] : '');
+        var embalagemMarcada = form && form.querySelector('input[data-grupo="Embalagem"]:checked');
+        selecionarImagem(p, imagemDasOpcoes(p, tamanho, embalagemMarcada ? embalagemMarcada.value : ''));
         var link = L.linkWhatsApp(L.mensagemProduto(p, escolhas));
         document.querySelectorAll('[data-produto-whatsapp]').forEach(function (a) { a.href = link; });
         L.definirWhatsAppFlutuante(L.mensagemProduto(p, escolhas));

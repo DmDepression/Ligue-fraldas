@@ -61,6 +61,17 @@ const http = require('node:http');
       await img.evaluate(el => el.decode());
     }
     assert.equal(await page.locator('.card__midia img').evaluateAll(imgs => imgs.every(i => i.complete && i.naturalWidth > 0)), true);
+    const fotos = [...new Set((JSON.parse(await fs.readFile(path.join(raiz, 'data/produtos.json'), 'utf8'))).flatMap(p => p.imagens))];
+    const fotosInvalidas = await page.evaluate(async (lista) => {
+      const resultados = await Promise.all(lista.map(src => new Promise(resolve => {
+        const imagem = new Image();
+        imagem.onload = () => resolve(imagem.naturalWidth > 0 ? null : src);
+        imagem.onerror = () => resolve(src);
+        imagem.src = src;
+      })));
+      return resultados.filter(Boolean);
+    }, fotos);
+    assert.deepEqual(fotosInvalidas, [], 'Todas as fotos do catálogo devem abrir no navegador');
     await page.evaluate(() => scrollTo(0, 0));
     await page.screenshot({ path: path.join(saida, 'catalogo-desktop.png'), fullPage: true });
     // Seleção obrigatória: um clique sem tamanho não deve adicionar.
@@ -71,10 +82,34 @@ const http = require('node:http');
     await fechar();
     await adicionar('tena-slip-noturna', 'EG — 24 unidades');
     await fechar();
+    await ir('/produto.html?id=higifral-confort');
+    await page.locator('input[data-grupo="Tamanho"][value="XG — 18 unidades"]').check();
+    assert.match(await page.locator('[data-imagem-principal] img').getAttribute('src'), /higifral-confort-xg\.jpg$/);
+    await page.locator('input[data-grupo="Tamanho"][value="M — 24 unidades"]').check();
+    assert.match(await page.locator('[data-imagem-principal] img').getAttribute('src'), /higifral-confort\.jpg$/);
+    for (const [id, preco] of [['protetor-aro-incofral-basic-m', '25,90'], ['protetor-aro-incofral-basic-g', '32,90']]) {
+      await ir('/produto.html?id=' + id);
+      assert.equal(await page.locator('input[data-grupo="Tamanho"]').count(), 0);
+      assert.match(await page.locator('[data-produto]').innerText(), /10 unidades/);
+      assert.ok((await page.locator('[data-preco]').innerText()).includes(preco));
+    }
+    await ir('/produto.html?id=bigfral-dermaplus');
+    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s55,90/);
+    await page.locator('input[data-grupo="Tamanho"][value="XG"]').check();
+    assert.equal(await page.locator('input[data-grupo="Embalagem"][value="pacote-menor"]').isDisabled(), true);
     await ir('/produto.html?id=vida-nova-confort');
     await page.waitForSelector('.produto__nome');
+    const fotoPrincipal = async () => page.locator('[data-imagem-principal] img').getAttribute('src');
+    assert.equal(await page.locator('.miniatura').count(), 4);
+    await page.locator('input[data-grupo="Tamanho"][value="XG"]').check();
+    assert.match(await fotoPrincipal(), /vida-nova-confort-xg\.jpg$/);
+    await page.locator('input[data-grupo="Tamanho"][value="G"]').check();
+    assert.match(await fotoPrincipal(), /vida-nova-confort\.png$/);
+    await page.locator('input[data-grupo="Embalagem"][value="hiper-g"]').check();
+    assert.match(await fotoPrincipal(), /vida-nova-economica-g\.jpg$/);
     await page.locator('input[data-grupo="Tamanho"][value="XG"]').check();
     await page.locator('input[data-grupo="Embalagem"][value="economica-xg"]').check();
+    assert.match(await fotoPrincipal(), /vida-nova-confort-xg\.jpg$/);
     await page.locator('[data-produto] [data-produto-adicionar]').click();
     await page.waitForFunction(() => document.querySelector('#carrinho').open);
     await total('R$ 224,70');
@@ -142,6 +177,34 @@ const http = require('node:http');
     await fechar();
     await page.evaluate(() => scrollTo(0, 0));
     await page.screenshot({ path: path.join(saida, 'produto-celular.png'), fullPage: true });
+    await ir('/produto.html?id=tena-slip-noturna');
+    assert.equal(await page.locator('.miniatura').count(), 3);
+    await page.locator('input[data-grupo="Tamanho"][value="EG — 24 unidades"]').check();
+    assert.match(await fotoPrincipal(), /tena-slip-noturna-eg\.jpg$/);
+    await page.locator('input[data-grupo="Tamanho"][value="M — 24 unidades"]').check();
+    assert.match(await fotoPrincipal(), /tena-slip-noturna\.jpg$/);
+    await ir('/produto.html?id=roupa-intima-vida-nova');
+    assert.match(await fotoPrincipal(), /roupa-intima-vida-nova-p-m-2\.jpg$/);
+    await page.locator('input[data-grupo="Tamanho"][value="G/XG"]').check();
+    await page.locator('input[data-grupo="Embalagem"][value="32-unidades"]').check();
+    assert.match(await fotoPrincipal(), /roupa-intima-vida-nova-g-xg\.jpg$/);
+    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s81,90/);
+    await page.locator('input[data-grupo="Tamanho"][value="P/M"]').check();
+    await page.locator('input[data-grupo="Embalagem"][value="16-unidades"]').check();
+    assert.match(await fotoPrincipal(), /roupa-intima-vida-nova-p-m-2\.jpg$/);
+    await ir('/produto.html?id=absorvente-adultcare-plus');
+    await page.locator('input[data-grupo="Embalagem"][value="40-unidades"]').check();
+    assert.match(await fotoPrincipal(), /absorvente-adultcare-plus-40\.png$/);
+    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s39,80/);
+    await page.locator('input[data-grupo="Embalagem"][value="20-unidades"]').check();
+    assert.match(await fotoPrincipal(), /absorvente-adultcare-plus\.jpg$/);
+    await ir('/produto.html?id=luva-nitrilo-safe-max-powder-free');
+    assert.equal(await page.locator('.miniatura').count(), 0);
+    assert.match(await fotoPrincipal(), /luva-nitrilo-safe-max-powder-free\.png$/);
+    for (const tamanho of ['M — 100 unidades', 'G — 100 unidades']) {
+      await page.locator('input[data-grupo="Tamanho"][value="' + tamanho + '"]').check();
+      assert.match(await page.locator('[data-preco]').innerText(), /R\$\s25,90/);
+    }
     for (const width of [320, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const url of ['/', '/catalogo.html', '/produto.html?id=higifral-confort']) {

@@ -32,6 +32,9 @@
       "img/produtos/higifral-confort-g.jpg",
       "img/produtos/higifral-confort-xg.jpg"
     ],
+    "fotosPorOpcao": [
+      { "tamanho": "M", "imagem": "img/produtos/higifral-confort.jpg" }
+    ],
     "criadoEm": "2026-10-05"
   },
   {
@@ -64,9 +67,14 @@
     "ordem": 2,
     "imagens": [
       "img/produtos/tena-slip-noturna.jpg",
-      "img/produtos/tena-slip-noturna-m.jpg",
       "img/produtos/tena-slip-noturna-g.jpg",
       "img/produtos/tena-slip-noturna-eg.jpg"
+    ],
+    "fotosPorOpcao": [
+      {
+        "tamanho": "M",
+        "imagem": "img/produtos/tena-slip-noturna.jpg"
+      }
     ],
     "criadoEm": "2026-10-05"
   },
@@ -94,10 +102,17 @@
     "ordem": 3,
     "imagens": [
       "img/produtos/vida-nova-confort.png",
-      "img/produtos/vida-nova-confort-g.jpg",
       "img/produtos/vida-nova-confort-xg.jpg",
       "img/produtos/vida-nova-economica-g.jpg",
       "img/produtos/vida-nova-economica-xg.jpg"
+    ],
+    "fotosPorOpcao": [
+      { "tamanho": "G", "imagem": "img/produtos/vida-nova-confort.png" },
+      { "tamanho": "XG", "imagem": "img/produtos/vida-nova-confort-xg.jpg" },
+      { "tamanho": "G", "embalagem": "economica-g", "imagem": "img/produtos/vida-nova-confort.png" },
+      { "tamanho": "XG", "embalagem": "economica-xg", "imagem": "img/produtos/vida-nova-confort-xg.jpg" },
+      { "tamanho": "G", "embalagem": "hiper-g", "imagem": "img/produtos/vida-nova-economica-g.jpg" },
+      { "tamanho": "XG", "embalagem": "hiper-xg", "imagem": "img/produtos/vida-nova-economica-xg.jpg" }
     ],
     "criadoEm": "2026-10-05",
     "embalagens": [
@@ -473,10 +488,18 @@
     ],
     "precoCentavos": 4290,
     "imagens": [
-      "img/produtos/roupa-intima-vida-nova-p-m.jpg",
       "img/produtos/roupa-intima-vida-nova-p-m-2.jpg",
-      "img/produtos/roupa-intima-vida-nova-g-xg.jpg",
-      "img/produtos/roupa-intima-vida-nova-g-xg-2.jpg"
+      "img/produtos/roupa-intima-vida-nova-p-m.jpg",
+      "img/produtos/roupa-intima-vida-nova-g-xg-2.jpg",
+      "img/produtos/roupa-intima-vida-nova-g-xg.jpg"
+    ],
+    "fotosPorOpcao": [
+      { "tamanho": "P/M", "imagem": "img/produtos/roupa-intima-vida-nova-p-m-2.jpg" },
+      { "tamanho": "G/XG", "imagem": "img/produtos/roupa-intima-vida-nova-g-xg-2.jpg" },
+      { "tamanho": "P/M", "embalagem": "16-unidades", "imagem": "img/produtos/roupa-intima-vida-nova-p-m-2.jpg" },
+      { "tamanho": "P/M", "embalagem": "32-unidades", "imagem": "img/produtos/roupa-intima-vida-nova-p-m.jpg" },
+      { "tamanho": "G/XG", "embalagem": "16-unidades", "imagem": "img/produtos/roupa-intima-vida-nova-g-xg-2.jpg" },
+      { "tamanho": "G/XG", "embalagem": "32-unidades", "imagem": "img/produtos/roupa-intima-vida-nova-g-xg.jpg" }
     ],
     "informacoes": [
       {
@@ -734,7 +757,7 @@
     "marca": "ARO - Incofral",
     "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
-      "M — 6 unidades"
+      "M — 10 unidades"
     ],
     "precoCentavos": 2590,
     "imagens": [
@@ -743,7 +766,7 @@
     "informacoes": [
       {
         "rotulo": "Tamanho M",
-        "valor": "6 unidades · aproximadamente 117,5 × 77,5 cm"
+        "valor": "10 unidades · aproximadamente 117,5 × 77,5 cm"
       }
     ],
     "destaque": false,
@@ -757,7 +780,7 @@
     "marca": "ARO - Incofral",
     "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
-      "G — 5 unidades"
+      "G — 10 unidades"
     ],
     "precoCentavos": 3290,
     "imagens": [
@@ -766,7 +789,7 @@
     "informacoes": [
       {
         "rotulo": "Tamanho G",
-        "valor": "5 unidades · aproximadamente 148 × 82 cm"
+        "valor": "10 unidades · aproximadamente 148 × 82 cm"
       }
     ],
     "destaque": false,
@@ -786,6 +809,10 @@
     "imagens": [
       "img/produtos/absorvente-adultcare-plus.jpg",
       "img/produtos/absorvente-adultcare-plus-40.png"
+    ],
+    "fotosPorOpcao": [
+      { "embalagem": "20-unidades", "imagem": "img/produtos/absorvente-adultcare-plus.jpg" },
+      { "embalagem": "40-unidades", "imagem": "img/produtos/absorvente-adultcare-plus-40.png" }
     ],
     "informacoes": [
       {
@@ -1118,6 +1145,30 @@
     "destaque": false,
     "ordem": 39,
     "criadoEm": "2026-10-13"
+  },
+  {
+    "id": "luva-nitrilo-safe-max-powder-free",
+    "nome": "Luva Nitrílica Safe Max Powder Free",
+    "categoria": "luvas",
+    "marca": "Safe Max",
+    "descricao": "A Luva Safe Max Powder Free é desenvolvida com nitrilo de alta resistência. Oferece uma barreira eficaz contra agentes químicos, líquidos e contaminantes, proporcionando durabilidade e proteção durante o uso.",
+    "tamanho": [
+      "M — 100 unidades",
+      "G — 100 unidades"
+    ],
+    "precoCentavos": 2590,
+    "imagens": [
+      "img/produtos/luva-nitrilo-safe-max-powder-free.png"
+    ],
+    "informacoes": [
+      {
+        "rotulo": "Embalagem",
+        "valor": "Caixa com 100 unidades"
+      }
+    ],
+    "destaque": false,
+    "ordem": 40,
+    "criadoEm": "2026-10-15"
   },
   {
     "id": "luva-vinil-inoven",

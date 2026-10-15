@@ -10,6 +10,20 @@ const erros = [];
 const ids = new Set();
 const categoriasValidas = new Set(categorias.map((c) => c.id));
 
+const fotoValida = (arquivo) => {
+  const bytes = fs.readFileSync(arquivo);
+  const extensao = path.extname(arquivo).toLowerCase();
+  if (extensao === '.png') {
+    return bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')) &&
+      bytes.toString('ascii', 12, 16) === 'IHDR';
+  }
+  if (extensao === '.jpg' || extensao === '.jpeg') {
+    return bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8 &&
+      bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9;
+  }
+  return false;
+};
+
 if (!Array.isArray(produtos) || produtos.length === 0) erros.push('data/produtos.json precisa conter uma lista de produtos.');
 
 produtos.forEach((produto, indice) => {
@@ -32,6 +46,14 @@ produtos.forEach((produto, indice) => {
       erros.push(`${ref}: caminho de foto inválido.`);
     } else if (!fs.existsSync(path.join(raiz, imagem))) {
       erros.push(`${ref}: foto não encontrada: ${imagem}.`);
+    } else if (!fotoValida(path.join(raiz, imagem))) {
+      erros.push(`${ref}: arquivo de foto inválido ou corrompido: ${imagem}.`);
+    }
+  });
+
+  (produto.fotosPorOpcao || []).forEach((foto) => {
+    if (!foto || !imagens.includes(foto.imagem)) {
+      erros.push(`${ref}: foto de opção não encontrada na galeria.`);
     }
   });
 
@@ -56,4 +78,4 @@ if (erros.length) {
   process.exit(1);
 }
 
-console.log(`Catálogo válido: ${produtos.length} produtos, ${categorias.length} categorias e todas as fotos encontradas.`);
+console.log(`Catálogo válido: ${produtos.length} produtos, ${categorias.length} categorias e todas as fotos com formato válido.`);
