@@ -161,6 +161,15 @@
       if (!grupos.length) return '';
       var gruposVisiveis = grupos.filter(function (g) { return g.opcoes.length > 1; });
       if (!gruposVisiveis.length) return '';
+      var escolherTamanho = gruposVisiveis.some(function (g) { return g.nome === 'Tamanho'; });
+      var escolherEmbalagem = gruposVisiveis.some(function (g) { return g.nome === 'Embalagem'; });
+      var dica = escolherTamanho && escolherEmbalagem
+        ? 'Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.'
+        : escolherEmbalagem
+          ? 'Escolha a embalagem (quantidade de unidades) antes de adicionar ao carrinho.'
+          : escolherTamanho
+            ? 'Escolha o tamanho antes de adicionar ao carrinho.'
+            : 'Escolha uma opção antes de adicionar ao carrinho.';
 
       return '<form class="produto__opcoes" data-opcoes>' +
         gruposVisiveis.map(function (g, gi) {
@@ -175,7 +184,7 @@
                 '<span>' + esc(o) + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
-        '<p class="produto__dica">Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.</p>' +
+        '<p class="produto__dica">' + dica + '</p>' +
         '</form>';
     }
 

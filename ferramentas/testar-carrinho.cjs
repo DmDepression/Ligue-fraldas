@@ -56,6 +56,9 @@ const http = require('node:http');
     while (await page.locator('[data-mais-botao]').isVisible()) {
       await page.locator('[data-mais-botao]').click();
     }
+    const adultcareCard = page.locator('.card').filter({ has: page.getByRole('link', { name: 'Absorvente Adultcare Plus', exact: true }) });
+    assert.deepEqual(await adultcareCard.locator('.card__tamanhos .etiqueta').allInnerTexts(), ['20 unidades', '40 unidades']);
+    assert.match(await adultcareCard.locator('.card__acoes').innerText(), /Escolher embalagem/);
     for (const img of await page.locator('.card__midia img').all()) {
       await img.scrollIntoViewIfNeeded();
       await img.evaluate(el => el.decode());
@@ -223,7 +226,12 @@ const http = require('node:http');
     await ir('/produto.html?id=absorvente-adultcare-plus');
     await page.locator('input[data-grupo="Embalagem"][value="40-unidades"]').check();
     assert.match(await fotoPrincipal(), /absorvente-adultcare-plus-40\.png$/);
-    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s39,80/);
+    assert.match(await page.locator('[data-preco]').innerText(), /R\$\s37,90/);
+    assert.match(await page.locator('.produto__opcoes .produto__dica').innerText(), /^Escolha a embalagem/);
+    await page.locator('[data-produto] [data-produto-adicionar]').click();
+    await page.waitForFunction(() => document.querySelector('#carrinho').open);
+    await total('R$ 387,40');
+    await fechar();
     await page.locator('input[data-grupo="Embalagem"][value="20-unidades"]').check();
     assert.match(await fotoPrincipal(), /absorvente-adultcare-plus\.jpg$/);
     await ir('/produto.html?id=luva-nitrilo-safe-max-powder-free');
