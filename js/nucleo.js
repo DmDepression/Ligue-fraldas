@@ -159,10 +159,11 @@
       return { id: eid, rotulo: rotulo, precoCentavos: e.precoCentavos, tamanhos: lista(e.tamanhos).map(texto).filter(Boolean) };
     }).filter(Boolean);
 
+    var embalagemDestaque = embalagens.find(function (e) { return e.id === texto(bruto.embalagemDestaque); });
     var preco = Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null;
-    if (lista(bruto.embalagens).length) {
-      // com embalagens, o preço de vitrine é o menor entre as disponíveis
-      preco = embalagens.length ? Math.min.apply(null, embalagens.map(function (e) { return e.precoCentavos; })) : null;
+    if (embalagens.length) {
+      // Usa a embalagem principal quando definida; nos demais casos, mostra o menor preço.
+      preco = embalagemDestaque ? embalagemDestaque.precoCentavos : Math.min.apply(null, embalagens.map(function (e) { return e.precoCentavos; }));
     }
 
     return {
@@ -174,6 +175,7 @@
       precoCentavos: preco,
       embalagens: embalagens,
       precosDiferem: embalagens.some(function (e) { return e.precoCentavos !== preco; }),
+      mostrarPrecoAPartir: bruto.mostrarPrecoAPartir !== false,
       tamanhos: lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean),
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
@@ -400,15 +402,17 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           tamanhos +
-          (p.precoCentavos ? '<p class="produto-preco">' + (p.precosDiferem ? '<small>a partir de </small>' : '') + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
+          (p.precoCentavos ? '<p class="produto-preco">' + (p.precosDiferem && p.mostrarPrecoAPartir ? '<small>a partir de </small>' : '') + L.moeda(p.precoCentavos) + '<small>por pacote</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
           (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>Escolher tamanho e embalagem</span></a>' : '') +
           (p.precoCentavos && !p.embalagens.length ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
-            '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
-            '<option value="">Escolha o tamanho</option>' + p.tamanhos.map(function (t) {
-              return '<option value="' + L.esc(t) + '">' + L.esc(t) + '</option>';
-            }).join('') + '</select></label>' +
+            (p.tamanhos.length > 1
+              ? '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
+                '<option value="">Escolha o tamanho</option>' + p.tamanhos.map(function (t) {
+                  return '<option value="' + L.esc(t) + '">' + L.esc(t) + '</option>';
+                }).join('') + '</select></label>'
+              : '<input type="hidden" name="tamanho" value="' + L.esc(p.tamanhos[0] || '') + '">') +
             '<button class="btn btn--primario btn--sm btn--bloco" type="submit">' + L.icone('sacola') + '<span>Adicionar ao carrinho</span></button></form>' : '') +
           '<a class="btn btn--wa btn--sm btn--bloco" href="' + L.esc(L.linkWhatsApp(L.mensagemProduto(p))) + '"' +
             ' target="_blank" rel="noopener" aria-label="Consultar pelo WhatsApp: ' + L.esc(p.nome) + '">' +
