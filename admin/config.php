@@ -1,25 +1,63 @@
 <?php
-/*
- * Configuração da área administrativa (HostGator / PHP).
- *
- * Usuário: admin
- * A senha NÃO fica em texto puro: guardamos só o hash PBKDF2-SHA256 abaixo.
- * Para trocar a senha, gere um novo hash com o mesmo SALT:
- *   php -r "echo hash_pbkdf2('sha256', 'NOVA_SENHA', 'f681b4c51291797dec13b563757a395e', 120000, 64);"
- */
+/* Configuração interna da área administrativa (HostGator / PHP 8+). */
 declare(strict_types=1);
 
-const ADMIN_USUARIO = 'admin';
-const ADMIN_SALT = 'f681b4c51291797dec13b563757a395e';
-const ADMIN_HASH = '9634a50da52cbe95b6404ee39aca4421655270ef69589f02ebec8159b432a604';
-const ADMIN_ITERACOES = 120000;
-
-// Arquivo do catálogo (o mesmo que o site público lê) e pasta de controle interno.
+// O catálogo continua em JSON: este painel não exige banco de dados.
 const ARQUIVO_PRODUTOS = __DIR__ . '/../data/produtos.json';
+const ARQUIVO_AJUSTES = __DIR__ . '/../data/ajustes.json';
 const PASTA_DADOS = __DIR__ . '/.dados';
+const ARQUIVO_CREDENCIAIS = PASTA_DADOS . '/credenciais.php';
+const PASTA_BACKUPS = PASTA_DADOS . '/backups';
+const MAX_BACKUPS = 30;
 
 const MAX_TENTATIVAS = 5;      // erros de login permitidos...
 const JANELA_TENTATIVAS = 900; // ...dentro de 15 minutos, por IP
+
+function garantir_pasta(string $pasta): bool
+{
+    return is_dir($pasta) || @mkdir($pasta, 0755, true);
+}
+
+/**
+ * As credenciais podem vir das variáveis de ambiente da hospedagem ou do
+ * arquivo privado admin/.dados/credenciais.php, ignorado pelo Git.
+ */
+function credenciais_admin(): ?array
+{
+    static $credenciais = false;
+    if ($credenciais !== false) {
+        return $credenciais;
+    }
+
+    $usuarioAmbiente = getenv('LIGUE_ADMIN_USUARIO');
+    $hashAmbiente = getenv('LIGUE_ADMIN_SENHA_HASH');
+    $dados = null;
+    if (is_string($usuarioAmbiente) && $usuarioAmbiente !== ''
+        && is_string($hashAmbiente) && $hashAmbiente !== '') {
+        $dados = ['usuario' => $usuarioAmbiente, 'senhaHash' => $hashAmbiente];
+    } elseif (is_file(ARQUIVO_CREDENCIAIS)) {
+        $carregado = require ARQUIVO_CREDENCIAIS;
+        $dados = is_array($carregado) ? $carregado : null;
+    }
+
+    if (!is_array($dados)
+        || !is_string($dados['usuario'] ?? null) || trim($dados['usuario']) === ''
+        || !is_string($dados['senhaHash'] ?? null) || ($dados['senhaHash'] ?? '') === '') {
+        $credenciais = null;
+        return null;
+    }
+
+    $credenciais = [
+        'usuario' => trim($dados['usuario']),
+        'senhaHash' => $dados['senhaHash'],
+    ];
+    return $credenciais;
+}
+
+function painel_configurado(): bool
+{
+    return credenciais_admin() !== null;
+}
 
 function iniciar_sessao(): void
 {
@@ -55,19 +93,19 @@ function token_csrf(): string
 
 function senha_confere(string $usuario, string $senha): bool
 {
-    $hash = hash_pbkdf2('sha256', $senha, ADMIN_SALT, ADMIN_ITERACOES, 64);
-    $okSenha = hash_equals(ADMIN_HASH, $hash);
-    $okUsuario = hash_equals(ADMIN_USUARIO, $usuario);
-    return $okSenha && $okUsuario;
+    $credenciais = credenciais_admin();
+    if ($credenciais === null) {
+        return false;
+    }
+    return hash_equals($credenciais['usuario'], $usuario)
+        && password_verify($senha, $credenciais['senhaHash']);
 }
 
 /* ---- limite de tentativas de login por IP ---- */
 
 function arquivo_tentativas(): string
 {
-    if (!is_dir(PASTA_DADOS)) {
-        @mkdir(PASTA_DADOS, 0755, true);
-    }
+    garantir_pasta(PASTA_DADOS);
     return PASTA_DADOS . '/tentativas.json';
 }
 
@@ -105,4 +143,56 @@ function registrar_tentativa(string $ip, bool $sucesso): void
 function ip_cliente(): string
 {
     return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+}
+
+function arquivo_bloqueio_catalogo(): string
+{
+    garantir_pasta(PASTA_DADOS);
+    return PASTA_DADOS . '/catalogo.lock';
+}
+
+/**
+ * Cria um backup e substitui os ajustes por renomeação atômica. Se qualquer
+ * etapa falhar, o arquivo publicado continua intacto.
+ */
+function salvar_ajustes(array $ajustes, string $conteudoOriginal): void
+{
+    if (!garantir_pasta(PASTA_BACKUPS)) {
+        throw new RuntimeException('Não foi possível criar a pasta de backups do painel.');
+    }
+
+    $sufixo = date('Ymd-His') . '-' . bin2hex(random_bytes(3));
+    $backup = PASTA_BACKUPS . '/ajustes-' . $sufixo . '.json';
+    if (@file_put_contents($backup, $conteudoOriginal, LOCK_EX) === false) {
+        throw new RuntimeException('Não foi possível criar a cópia de segurança do catálogo.');
+    }
+
+    $json = json_encode(
+        $ajustes,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
+    ) . "\n";
+    $temporario = @tempnam(dirname(ARQUIVO_AJUSTES), '.ajustes-');
+    if ($temporario === false) {
+        @unlink($backup);
+        throw new RuntimeException('Não foi possível preparar a atualização do catálogo.');
+    }
+
+    try {
+        if (@file_put_contents($temporario, $json, LOCK_EX) === false) {
+            throw new RuntimeException('Não foi possível gravar a atualização do catálogo.');
+        }
+        @chmod($temporario, 0644);
+        if (!@rename($temporario, ARQUIVO_AJUSTES)) {
+            throw new RuntimeException('Não foi possível publicar a atualização do catálogo.');
+        }
+    } catch (Throwable $erro) {
+        @unlink($temporario);
+        throw $erro;
+    }
+
+    $backups = glob(PASTA_BACKUPS . '/ajustes-*.json') ?: [];
+    usort($backups, fn(string $a, string $b): int => filemtime($b) <=> filemtime($a));
+    foreach (array_slice($backups, MAX_BACKUPS) as $antigo) {
+        @unlink($antigo);
+    }
 }

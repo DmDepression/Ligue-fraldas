@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/public_html/
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R admin css data ferramentas img js $DEPLOYPATH
+    - /bin/cp .htaccess 404.html catalogo.html favicon.ico index.html produto.html robots.txt site.webmanifest sitemap.xml $DEPLOYPATH

@@ -10,9 +10,16 @@ const http = require('node:http');
   const saida = path.resolve(raiz, '..', 'preview-ligue');
   await fs.mkdir(saida, { recursive: true });
   const tipos = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg' };
+  let ajustesTeste = null;
   const server = http.createServer(async (req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      if (pathname === '/data/ajustes.json') {
+        if (!ajustesTeste) throw Error('Sem ajustes locais');
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(ajustesTeste));
+        return;
+      }
       const arquivo = path.resolve(raiz, '.' + (pathname === '/' ? '/index.html' : pathname));
       if (!arquivo.startsWith(raiz + path.sep)) throw Error('Caminho inválido');
       res.setHeader('Content-Type', tipos[path.extname(arquivo)] || 'application/octet-stream');
@@ -45,7 +52,10 @@ const http = require('node:http');
     await page.screenshot({ path: path.join(saida, 'inicio-desktop.png'), fullPage: true });
     await page.getByRole('link', { name: 'Ver produtos', exact: true }).click();
     await page.waitForSelector('[data-compra-card]');
-    assert.equal(await page.locator('[data-compra-card]').count(), 3);
+    assert.ok(await page.locator('[data-compra-card]').count() >= 3);
+    while (await page.locator('[data-mais-botao]').isVisible()) {
+      await page.locator('[data-mais-botao]').click();
+    }
     for (const img of await page.locator('.card__midia img').all()) {
       await img.scrollIntoViewIfNeeded();
       await img.evaluate(el => el.decode());
@@ -61,7 +71,12 @@ const http = require('node:http');
     await fechar();
     await adicionar('tena-slip-noturna', 'EG — 24 unidades');
     await fechar();
-    await adicionar('vida-nova-confort', 'XG — 26 unidades');
+    await ir('/produto.html?id=vida-nova-confort');
+    await page.waitForSelector('.produto__nome');
+    await page.locator('input[data-grupo="Tamanho"][value="XG"]').check();
+    await page.locator('input[data-grupo="Embalagem"][value="economica-xg"]').check();
+    await page.locator('[data-produto] [data-produto-adicionar]').click();
+    await page.waitForFunction(() => document.querySelector('#carrinho').open);
     await total('R$ 224,70');
     const qtd = page.locator('[data-quantidade="0"]');
     await qtd.fill('2');
@@ -85,7 +100,7 @@ const http = require('node:http');
     assert.equal(link.pathname, '/5521998928742');
     const msg = await page.locator('[data-carrinho-mensagem]').inputValue();
     assert.ok(msg.startsWith("Oi, me chamo Ana D'Ávila & João! Gostaria dos seguintes itens:"));
-    for (const trecho of ['Higifral Confort', 'Tena Slip Noturna', 'Vida Nova Confort', 'M — 24 unidades', 'EG — 24 unidades', 'XG — 26 unidades', '2 pacotes', '279,60', 'Por gentileza.']) assert.ok(msg.includes(trecho), trecho);
+    for (const trecho of ['Higifral Confort', 'Tena Slip Noturna', 'Vida Nova Confort', 'M — 24 unidades', 'EG — 24 unidades', 'XG', 'Econômica — 26 unidades', '2 pacotes', '279,60', 'Por gentileza.']) assert.ok(msg.includes(trecho), trecho);
     await fs.writeFile(path.join(saida, 'mensagem-whatsapp.txt'), msg);
     // Intercepta a navegação: testa a URL sem entrar em contato com o WhatsApp.
     await page.context().route('https://wa.me/**', route => route.fulfill({ contentType: 'text/html', body: 'Pedido de teste' }));
@@ -118,7 +133,8 @@ const http = require('node:http');
     await page.waitForSelector('.produto__nome');
     await page.locator('[data-barra-produto] [data-produto-adicionar]').click();
     assert.match(await page.locator('[data-compra-aviso]').innerText(), /Selecione/);
-    await page.locator('input[data-grupo="Tamanho"][value="G — 30 unidades"]').check();
+    await page.locator('input[data-grupo="Tamanho"][value="G"]').check();
+    await page.locator('input[data-grupo="Embalagem"][value="economica-g"]').check();
     await page.locator('[data-barra-produto] [data-produto-adicionar]').click();
     await page.waitForFunction(() => document.querySelector('#carrinho').open);
     await total('R$ 349,50');
@@ -169,12 +185,32 @@ const http = require('node:http');
     await page.reload();
     await page.locator('[data-carrinho-abrir]').click();
     await total('R$ 0,00');
+
+    // Ajustes locais do painel se sobrepõem ao catálogo sem modificar produtos.json.
+    await fechar();
+    ajustesTeste = { produtos: {
+      'higifral-confort': { precoCentavos: 1234 },
+      'tena-slip-noturna': { ativo: false },
+      'vida-nova-confort': { embalagens: { 'economica-g': { precoCentavos: 7990 } } }
+    } };
+    await ir('/catalogo.html');
+    assert.equal(await page.locator('a[href*="tena-slip-noturna"]').count(), 0);
+    await adicionar('higifral-confort', 'M — 24 unidades');
+    await total('R$ 12,34');
+    await fechar();
+    await ir('/produto.html?id=vida-nova-confort');
+    await page.locator('input[data-grupo="Tamanho"][value="G"]').check();
+    await page.locator('input[data-grupo="Embalagem"][value="economica-g"]').check();
+    await page.locator('[data-produto] [data-produto-adicionar]').click();
+    await page.waitForFunction(() => document.querySelector('#carrinho').open);
+    await total('R$ 92,24');
+    ajustesTeste = null;
     assert.deepEqual(erros, []);
     // Prévia da imagem de compartilhamento, sem modificar os arquivos do site.
     await page.setViewportSize({ width: 1200, height: 630 });
     await page.goto(base + '/ferramentas/og-image.html');
     await page.screenshot({ path: path.join(saida, 'compartilhamento.png') });
-    console.log('PASSOU: produtos, imagens, tamanhos, quantidades, total, mensagem, persistência, remoção, dados inválidos e layouts de 320 a 1440 px.');
+    console.log('PASSOU: produtos, imagens, ajustes do painel, tamanhos, total, mensagem, persistência, dados inválidos e layouts de 320 a 1440 px.');
     console.log('Prévias: ' + saida);
   } finally {
     if (browser) await browser.close();

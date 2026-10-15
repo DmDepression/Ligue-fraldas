@@ -6,10 +6,14 @@ Options -Indexes
   Header set Cache-Control "no-store"
   Header set X-Frame-Options "DENY"
   Header set Referrer-Policy "same-origin"
+  Header set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
 </IfModule>
 
 # Pasta com o controle de tentativas de login (e qualquer arquivo oculto)
 <FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(config|credenciais\.exemplo)\.php$">
   Require all denied
 </FilesMatch>
 <IfModule mod_rewrite.c>

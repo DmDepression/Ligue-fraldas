@@ -23,8 +23,11 @@ js/carrinho.js          Carrinho persistente no navegador e resumo do pedido pel
 js/catalogo.js          Lógica do catálogo
 js/produto.js           Lógica da página do produto
 data/produtos.json      Produtos, tamanhos, embalagens e preços  ← editar aqui
+data/ajustes.json       Preços e suspensões do painel (criado na hospedagem; fora do Git)
 data/categorias.json    Lista de categorias
 data/produtos.exemplo.json   Modelo com todos os campos (não aparece no site)
+admin/                  Painel em PHP para alterar preço e suspender/reativar anúncios
+admin/.dados/           Credencial privada, bloqueios e backups (conteúdo fora do Git)
 img/logo.svg            Logotipo (recortado do arquivo original)
 img/marca/              Logotipo original
 img/produtos/           Fotos dos produtos
@@ -72,10 +75,10 @@ Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados p
 | `nome` | sim | Nome exibido |
 | `categoria` | não | `id` de uma categoria de `data/categorias.json`. Sem categoria, o produto vai para "Outros" |
 | `marca` | não | Aparece no card, na busca e no filtro de marcas |
-| `descricao` | não | Texto da página do produto. Uma linha em branco inicia um novo parágrafo |
+| `descricao` | sim | Texto da página do produto. Uma linha em branco inicia um novo parágrafo |
 | `tamanho` | não | `"G"` ou uma lista `["P", "M", "G"]`. O cliente pode escolher, e a escolha vai na mensagem do WhatsApp |
 | `precoCentavos` | para o carrinho | Preço inteiro em centavos por pacote: `5490` significa R$ 54,90. Mesmo preço para todos os tamanhos do produto |
-| `imagem` | não | Foto principal. Sem foto, aparece o quadro "Imagem em breve" |
+| `imagem` | sim* | Foto principal |
 | `imagens` | não | Fotos extras (galeria da página do produto) |
 | `variacoes` | não | Grupos de opções, como embalagem ou modelo. A escolha também vai na mensagem |
 | `informacoes` | não | Tabela "Informações do produto" (`rotulo` e `valor`) |
@@ -84,6 +87,9 @@ Edite `data/produtos.json`. Ele é uma lista (`[ ... ]`) de produtos separados p
 | `ordem` | não | Número para definir a ordem manualmente (menor aparece antes) |
 | `criadoEm` | não | Data `"AAAA-MM-DD"`, usada na ordenação "Mais recentes" |
 | `ativo` | não | `false` esconde o produto sem apagá-lo |
+
+\* Pode ser substituído por uma lista `imagens`. Um anúncio só deve ser publicado quando tiver nome, descrição,
+preço e ao menos uma foto. Rode `node ferramentas/validar-catalogo.cjs` antes de publicar.
 
 Dicas:
 - **Tamanhos e embalagens:** use opções como `"M — 24 unidades"` para que o cliente veja e envie a embalagem correta. Cada tamanho fica separado no carrinho.
@@ -114,14 +120,62 @@ em `sameAs` nos dados estruturados da página inicial. Ao trocar o perfil, atual
 
 1. **Domínio:** troque `https://www.SEU-DOMINIO.com.br` pelo endereço real em `index.html`, `catalogo.html`,
    `produto.html`, `robots.txt` e `sitemap.xml` (procurar e substituir no editor resolve).
-2. **Hospedagem:** qualquer hospedagem de site estático serve (GitHub Pages, Netlify, Cloudflare Pages, Vercel ou
-   hospedagem comum). Envie a pasta inteira. A pasta `ferramentas/` é opcional.
+2. **Hospedagem:** a vitrine funciona em hospedagem estática. O painel administrativo exige PHP 8 e, por isso, deve
+   rodar na HostGator ou em outra hospedagem PHP. O GitHub Pages publica apenas a vitrine e exclui os arquivos do admin.
 3. **404:** a maioria dessas hospedagens usa o `404.html` automaticamente.
 4. **Google:** cadastre o site no Google Search Console e envie o `sitemap.xml`. Para buscas como "fraldas geriátricas
    Vila Isabel", o Perfil da Empresa no Google (Google Maps) com o mesmo endereço e telefones ajuda muito.
 
 O catálogo (`.json`) é sempre buscado atualizado. Mudanças em CSS ou JS podem levar alguns minutos para aparecer em
 quem já visitou o site, por causa do cache do navegador.
+
+## Painel administrativo sem banco de dados
+
+O painel fica em `/admin/` e foi limitado às duas operações solicitadas:
+
+- alterar o preço do produto ou de uma embalagem;
+- suspender e reativar o anúncio sem apagá-lo.
+
+Não é necessário MySQL. O painel guarda somente preço e status em `data/ajustes.json`, cria uma cópia de segurança
+antes de cada alteração e mantém os 30 backups mais recentes em `admin/.dados/backups/`. O catálogo principal
+`data/produtos.json` continua intacto. A gravação usa bloqueio e troca atômica para evitar que duas edições simultâneas
+corrompam os ajustes.
+
+As credenciais não ficam no Git. Após a primeira instalação na HostGator, abra o **Terminal do cPanel**, entre na pasta
+do site e execute:
+
+```bash
+php ferramentas/gerar-credenciais-admin.php
+```
+
+Informe o usuário e uma senha nova com pelo menos 12 caracteres. O comando cria
+`admin/.dados/credenciais.php`, arquivo privado ignorado pelo Git. Não reutilize a senha antiga que já apareceu no
+histórico do repositório. Depois acesse `https://SEU-DOMINIO/admin/`.
+
+O PHP precisa ter permissão para escrever em `data/` e `admin/.dados/`. Em uma instalação normal feita pelo mesmo
+usuário do cPanel, a permissão `755` nas pastas é suficiente. O arquivo `data/ajustes.json` será criado pelo painel.
+
+## Puxar do GitHub para a HostGator
+
+Sim. Pelo **Git Version Control** do cPanel, clone `https://github.com/DmDepression/Ligue-fraldas` para a pasta do site.
+Também é possível usar o Terminal do cPanel em uma pasta vazia:
+
+```bash
+cd ~/public_html
+git clone https://github.com/DmDepression/Ligue-fraldas.git .
+```
+
+Nas próximas atualizações:
+
+```bash
+cd ~/public_html
+git pull --ff-only origin main
+```
+
+As credenciais, os backups e `data/ajustes.json` permanecem no servidor porque estão ignorados pelo Git. Assim, um
+`git pull` atualiza o catálogo e o código sem apagar os preços ou suspensões feitos pelo painel. Depois de cada
+atualização, rode `node ferramentas/validar-catalogo.cjs` se o Node estiver disponível no servidor; essa mesma
+validação já roda automaticamente no GitHub Actions.
 
 ## SEO local já incluído
 

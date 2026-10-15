@@ -12,3 +12,11 @@ node_modules/
 
 # Configurações pessoais do Claude Code (o launch.json é do projeto e fica no repositório)
 .claude/settings.local.json
+
+# Dados privados e temporários do painel administrativo
+admin/.dados/*
+!admin/.dados/.gitkeep
+
+# Ajustes de preço e status feitos pelo painel em cada hospedagem
+data/ajustes.json
+data/.ajustes-*
