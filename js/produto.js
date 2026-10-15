@@ -76,7 +76,30 @@
 
     function textoPreco(p, embalagem) {
       var valor = embalagem ? embalagem.precoCentavos : p.precoCentavos;
-      return (!embalagem && p.precosDiferem ? '<small>a partir de </small>' : '') + L.moeda(valor) + '<small>por pacote</small>';
+      return (!embalagem && p.precosDiferem && p.mostrarPrecoAPartir ? '<small>a partir de </small>' : '') + L.moeda(valor) + '<small>por pacote</small>';
+    }
+
+    function codigoTamanho(rotulo) {
+      return L.normalizar(String(rotulo || '').split(/[—–]/)[0]).replace(/\s+/g, '').replace(/\//g, '-');
+    }
+
+    function imagemDoTamanho(p, tamanho) {
+      var codigo = codigoTamanho(tamanho);
+      if (!codigo) return -1;
+      return p.imagens.findIndex(function (src) {
+        var nome = L.normalizar(src.split('/').pop().replace(/\.[^.]+$/, ''));
+        return nome.endsWith('-' + codigo);
+      });
+    }
+
+    function selecionarImagem(p, indice) {
+      if (indice < 0 || indice >= p.imagens.length) return;
+      var principal = alvo.querySelector('[data-imagem-principal]');
+      if (!principal) return;
+      principal.innerHTML = L.imagemProduto(p.imagens[indice], p.nome + ' — imagem do tamanho selecionado', 'width="800" height="800"');
+      alvo.querySelectorAll('.miniatura').forEach(function (botao) {
+        botao.setAttribute('aria-pressed', String(Number(botao.getAttribute('data-imagem')) === indice));
+      });
     }
 
     function galeria(p) {
@@ -120,10 +143,11 @@
     function opcoes(p) {
       var grupos = gruposDeOpcoes(p);
       if (!grupos.length) return '';
-      var algumaEscolha = grupos.some(function (g) { return g.opcoes.length > 1; });
+      var gruposVisiveis = grupos.filter(function (g) { return g.opcoes.length > 1; });
+      if (!gruposVisiveis.length) return '';
 
       return '<form class="produto__opcoes" data-opcoes>' +
-        grupos.map(function (g, gi) {
+        gruposVisiveis.map(function (g, gi) {
           var unica = g.opcoes.length === 1;
           return '<fieldset class="opcoes">' +
             '<legend class="opcoes__titulo">' + esc(g.nome) + '</legend>' +
@@ -135,7 +159,7 @@
                 '<span>' + esc(o) + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
-        (algumaEscolha ? '<p class="produto__dica">Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.</p>' : '') +
+        '<p class="produto__dica">Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.</p>' +
         '</form>';
     }
 
@@ -193,6 +217,8 @@
               return { nome: input.getAttribute('data-grupo'), valor: input.getAttribute('data-rotulo') || input.value };
             })
           : [];
+        var tamanho = form && form.querySelector('input[data-grupo="Tamanho"]:checked');
+        if (tamanho) selecionarImagem(p, imagemDoTamanho(p, tamanho.value));
         var link = L.linkWhatsApp(L.mensagemProduto(p, escolhas));
         document.querySelectorAll('[data-produto-whatsapp]').forEach(function (a) { a.href = link; });
         L.definirWhatsAppFlutuante(L.mensagemProduto(p, escolhas));
@@ -213,8 +239,9 @@
       document.querySelectorAll('[data-produto-adicionar]').forEach(function (botao) {
         botao.addEventListener('click', function () {
           var selecionado = alvo.querySelector('input[data-grupo="Tamanho"]:checked');
+          var tamanho = selecionado ? selecionado.value : (p.tamanhos.length === 1 ? p.tamanhos[0] : '');
           var aviso = alvo.querySelector('[data-compra-aviso]');
-          if (!selecionado) {
+          if (!tamanho) {
             aviso.textContent = 'Selecione um tamanho para adicionar este produto ao carrinho.';
             var primeira = alvo.querySelector('input[data-grupo="Tamanho"]');
             if (primeira) primeira.focus();
@@ -228,7 +255,7 @@
             return;
           }
           aviso.textContent = '';
-          L.adicionarAoCarrinho(p.id, selecionado.value, embalagem ? embalagem.value : '').catch(function () {
+          L.adicionarAoCarrinho(p.id, tamanho, embalagem ? embalagem.value : '').catch(function () {
             aviso.textContent = 'Não foi possível adicionar o produto. Tente novamente.';
           });
         });
