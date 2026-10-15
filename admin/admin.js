@@ -230,7 +230,8 @@
         mostrarLogin();
         if (r.configurado === false) {
           var erro = $('#login-erro');
-          erro.textContent = 'O painel ainda não tem uma senha configurada na hospedagem.';
+          erro.innerHTML = 'O painel ainda não tem uma senha configurada. ' +
+            '<a href="instalar.php">Configurar o acesso</a>.';
           erro.hidden = false;
         }
       }
