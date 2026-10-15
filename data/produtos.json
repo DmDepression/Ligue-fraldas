@@ -4,7 +4,7 @@
     "nome": "Fralda Higifral Confort",
     "categoria": "fraldas-geriatricas",
     "marca": "Higifral",
-    "descricao": "A Fralda Geriátrica Higifral Confort é destinada a pessoas adultas com incontinência urinária. No tamanho M, é projetada para indivíduos com peso entre 40 kg e 70 kg e cintura ajustável entre 75 cm e 110 cm.",
+    "descricao": "A Fralda Geriátrica Higifral Confort é destinada a pessoas adultas com incontinência urinária.",
     "tamanho": [
       "M — 24 unidades",
       "G — 20 unidades",
@@ -288,9 +288,15 @@
       {
         "id": "pacote-menor",
         "rotulo": "Pacote menor",
-        "precoCentavos": 2590
+        "precoCentavos": 2590,
+        "tamanhos": [
+          "M",
+          "G"
+        ]
       }
-    ]
+    ],
+    "embalagemDestaque": "pacote-maior",
+    "mostrarPrecoAPartir": false
   },
   {
     "id": "biofral-classic",
@@ -462,8 +468,8 @@
     "marca": "Vida Nova",
     "descricao": "A Vida Nova Pants é ideal para adultos com mobilidade reduzida e incontinência moderada. Possui cintura elástica respirável, formato fácil de vestir e tirar e toque suave de algodão. Oferece controle de odores, proporcionando conforto e segurança.",
     "tamanho": [
-      "P/M — 16 unidades",
-      "G/XG — 16 unidades"
+      "P/M",
+      "G/XG"
     ],
     "precoCentavos": 4290,
     "imagens": [
@@ -475,16 +481,32 @@
     "informacoes": [
       {
         "rotulo": "Tamanho P/M",
-        "valor": "16 unidades · 30 a 70 kg · cintura de 75 a 104 cm"
+        "valor": "30 a 70 kg · cintura de 75 a 104 cm"
       },
       {
         "rotulo": "Tamanho G/XG",
-        "valor": "16 unidades · 70 a 110 kg · cintura de 100 a 137 cm"
+        "valor": "70 a 110 kg · cintura de 100 a 137 cm"
+      },
+      {
+        "rotulo": "Embalagens",
+        "valor": "16 unidades por R$ 42,90 · 32 unidades por R$ 81,90"
       }
     ],
     "destaque": false,
     "ordem": 16,
-    "criadoEm": "2026-10-13"
+    "criadoEm": "2026-10-13",
+    "embalagens": [
+      {
+        "id": "16-unidades",
+        "rotulo": "16 unidades",
+        "precoCentavos": 4290
+      },
+      {
+        "id": "32-unidades",
+        "rotulo": "32 unidades",
+        "precoCentavos": 8190
+      }
+    ]
   },
   {
     "id": "roupa-intima-higifral-full-care",
@@ -679,7 +701,7 @@
   },
   {
     "id": "absorvente-aro-incofral-basic",
-    "nome": "Absorvente ARO Incofral Basic",
+    "nome": "Absorvente ARO - Incofral Basic",
     "categoria": "absorventes",
     "marca": "ARO Incofral",
     "descricao": "O Absorvente Geriátrico ARO Incofral Basic é indicado para pessoas com incontinência urinária e também para situações de pós-parto e pós-operatório. Pode ser usado por homens e mulheres e possui material hipoalergênico.",
