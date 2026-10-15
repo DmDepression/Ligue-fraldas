@@ -778,27 +778,40 @@
     "nome": "Absorvente Adultcare Plus",
     "categoria": "absorventes",
     "marca": "Adultcare",
-    "descricao": "O Absorvente Adultcare Plus é indicado para pessoas com incontinência urinária e em casos de pós-parto e pós-operatório. Contém inibidor de odores e Aloe Vera, que ajudam no cuidado com a pele e no controle do mau cheiro.",
+    "descricao": "O Absorvente Adultcare Plus é indicado para pessoas com incontinência urinária e em casos de pós-parto e pós-operatório. Contém inibidor de odores e Aloe Vera na sua composição, que ajuda a prevenir o mau cheiro e assaduras.",
     "tamanho": [
-      "Único — 20 unidades"
+      "Único"
     ],
     "precoCentavos": 1990,
     "imagens": [
-      "img/produtos/absorvente-adultcare-plus.jpg"
+      "img/produtos/absorvente-adultcare-plus.jpg",
+      "img/produtos/absorvente-adultcare-plus-40.png"
     ],
     "informacoes": [
       {
-        "rotulo": "Medidas",
-        "valor": "aproximadamente 38 × 10 cm"
+        "rotulo": "Tamanho único",
+        "valor": "Aproximadamente 10 cm de largura e 38 cm de comprimento"
       },
       {
-        "rotulo": "Embalagem",
-        "valor": "20 unidades"
+        "rotulo": "Embalagens",
+        "valor": "20 ou 40 unidades"
       }
     ],
     "destaque": false,
     "ordem": 27,
-    "criadoEm": "2026-10-13"
+    "criadoEm": "2026-10-13",
+    "embalagens": [
+      {
+        "id": "20-unidades",
+        "rotulo": "20 unidades",
+        "precoCentavos": 1990
+      },
+      {
+        "id": "40-unidades",
+        "rotulo": "40 unidades",
+        "precoCentavos": 3980
+      }
+    ]
   },
   {
     "id": "absorvente-adultcare-premium",
@@ -965,7 +978,7 @@
   {
     "id": "toalha-umedecida-vida-nova",
     "nome": "Toalha Umedecida Vida Nova",
-    "categoria": "lencos",
+    "categoria": "higiene-pessoal",
     "marca": "Vida Nova",
     "descricao": "A Toalha Umedecida Vida Nova é indicada para higiene adulta e banho de leito. É enriquecida com Aloe Vera, dermatologicamente testada e oferece limpeza suave para a rotina de cuidados.",
     "tamanho": [
@@ -992,7 +1005,7 @@
   {
     "id": "toalha-umedecida-higifral",
     "nome": "Toalha Umedecida Higifral",
-    "categoria": "lencos",
+    "categoria": "higiene-pessoal",
     "marca": "Higifral",
     "descricao": "A Toalha Umedecida Higifral foi desenvolvida para a higiene diária de adultos, inclusive pessoas acamadas ou com mobilidade reduzida. É macia, resistente e não contém álcool etílico.",
     "tamanho": [
@@ -1042,7 +1055,7 @@
   {
     "id": "tapete-pet-super-dog",
     "nome": "Tapete Pet Super Dog",
-    "categoria": "outros",
+    "categoria": "tapete-pet",
     "marca": "Super Dog",
     "descricao": "O Tapete Higiênico Super Dog Premium Slim possui sete camadas de proteção para auxiliar na absorção da urina e ajudar a manter o ambiente seco, além de contar com barreira impermeável.",
     "tamanho": [
