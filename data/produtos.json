@@ -275,7 +275,14 @@
     "imagens": [
       "img/produtos/bigfral-dermaplus-m.jpg",
       "img/produtos/bigfral-dermaplus-g.jpg",
-      "img/produtos/bigfral-dermaplus-xg.jpg"
+      "img/produtos/bigfral-dermaplus-xg.jpg",
+      "img/produtos/bigfral-dermaplus-xg-7.png"
+    ],
+    "fotosPorOpcao": [
+      { "tamanho": "M", "embalagem": "pacote-maior", "imagem": "img/produtos/bigfral-dermaplus-m.jpg" },
+      { "tamanho": "G", "embalagem": "pacote-maior-g", "imagem": "img/produtos/bigfral-dermaplus-g.jpg" },
+      { "tamanho": "XG", "embalagem": "pacote-maior-xg", "imagem": "img/produtos/bigfral-dermaplus-xg.jpg" },
+      { "tamanho": "XG", "embalagem": "pacote-menor", "imagem": "img/produtos/bigfral-dermaplus-xg-7.png" }
     ],
     "informacoes": [
       {
@@ -289,6 +296,10 @@
       {
         "rotulo": "Tamanho XG",
         "valor": "acima de 90 kg · cintura de 120 a 165 cm"
+      },
+      {
+        "rotulo": "Embalagens",
+        "valor": "M: 18 unidades · G: 16 unidades · XG: 7 ou 14 unidades"
       }
     ],
     "destaque": false,
@@ -297,16 +308,28 @@
     "embalagens": [
       {
         "id": "pacote-maior",
-        "rotulo": "Pacote maior",
-        "precoCentavos": 5590
+        "rotulo": "18 unidades",
+        "precoCentavos": 5590,
+        "tamanhos": ["M"]
+      },
+      {
+        "id": "pacote-maior-g",
+        "rotulo": "16 unidades",
+        "precoCentavos": 5590,
+        "tamanhos": ["G"]
+      },
+      {
+        "id": "pacote-maior-xg",
+        "rotulo": "14 unidades",
+        "precoCentavos": 5180,
+        "tamanhos": ["XG"]
       },
       {
         "id": "pacote-menor",
-        "rotulo": "Pacote menor",
+        "rotulo": "7 unidades",
         "precoCentavos": 2590,
         "tamanhos": [
-          "M",
-          "G"
+          "XG"
         ]
       }
     ],
