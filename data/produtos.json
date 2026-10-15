@@ -332,9 +332,7 @@
           "XG"
         ]
       }
-    ],
-    "embalagemDestaque": "pacote-maior",
-    "mostrarPrecoAPartir": false
+    ]
   },
   {
     "id": "biofral-classic",
@@ -750,7 +748,7 @@
     "nome": "Absorvente ARO - Incofral Basic",
     "categoria": "absorventes",
     "marca": "ARO - Incofral",
-    "descricao": "O Absorvente Geriátrico ARO Incofral Basic é indicado para pessoas com incontinência urinária e também para situações de pós-parto e pós-operatório. Pode ser usado por homens e mulheres e possui material hipoalergênico.",
+    "descricao": "O Absorvente Geriátrico ARO - Incofral Basic é indicado para pessoas com incontinência urinária e também para situações de pós-parto e pós-operatório. Pode ser usado por homens e mulheres e possui material hipoalergênico.",
     "tamanho": [
       "Único — 60 unidades"
     ],
@@ -778,7 +776,7 @@
     "nome": "Protetor ARO - Incofral Basic M",
     "categoria": "protetores",
     "marca": "ARO - Incofral",
-    "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
+    "descricao": "O Protetor Descartável Multiuso ARO - Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
       "M — 10 unidades"
     ],
@@ -801,7 +799,7 @@
     "nome": "Protetor ARO - Incofral Basic G",
     "categoria": "protetores",
     "marca": "ARO - Incofral",
-    "descricao": "O Protetor Descartável Multiuso ARO Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
+    "descricao": "O Protetor Descartável Multiuso ARO - Incofral Basic auxilia na proteção de colchões e superfícies durante a troca e os cuidados diários. Ajuda a proteger contra líquidos e umidade e é indicado para pessoas com mobilidade reduzida ou incontinência urinária.",
     "tamanho": [
       "G — 10 unidades"
     ],
