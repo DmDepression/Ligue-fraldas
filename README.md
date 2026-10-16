@@ -103,7 +103,8 @@ tem preço próprio e, se quiser, a lista dos tamanhos em que existe:
 ```
 
 - Sem `tamanhos`, a embalagem vale para todos os tamanhos (ex.: Vida Nova Pants com 16 ou 32 unidades).
-- O card mostra o menor preço, com "a partir de" quando as embalagens têm preços diferentes.
+- O card mostra o menor preço, com "a partir de" quando as embalagens têm preços diferentes. Para mostrar uma
+  embalagem específica (preço e foto), marque-a como **Capa** no painel (campo `embalagemCapa`).
 - Na página do produto, o preço acompanha a escolha. Com só o tamanho marcado, mostra o das embalagens daquele
   tamanho. Com a embalagem marcada, mostra o preço exato.
 - O `id` da embalagem é usado pelo painel e pelo carrinho. Evite trocar o `id` de uma embalagem já publicada:
@@ -137,6 +138,7 @@ quantidade impressos na embalagem.
 | `precoCentavos` | sim, sem `embalagens` | Preço inteiro em centavos por pacote: `5490` = R$ 54,90 |
 | `embalagens` | não | Pacotes com preço próprio (veja acima) |
 | `fotosPorOpcao` | não | Foto de cada tamanho ou embalagem (veja acima) |
+| `embalagemCapa` | não | `id` da embalagem de capa: o card mostra o preço (com a quantidade) e a foto dela, e a página do produto abre com ela escolhida. No painel, é a caixa **Capa** da embalagem. Sem ela, o card mostra "a partir de" o menor preço |
 | `marca` | não | Card, busca e filtro de marcas. Marca com hífen (ARO - Incofral) deve ser escrita igual em todo o catálogo |
 | `tamanho` | não | `"G — 20 unidades"` ou uma lista. O seletor só aparece quando há mais de uma opção |
 | `informacoes` | não | Tabela "Informações do produto" (`rotulo` e `valor`) |

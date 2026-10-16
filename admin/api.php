@@ -175,6 +175,20 @@ try {
                 return $loja;
             }));
 
+        case 'definirCapa':
+            // Marca (ou desmarca, com embalagem vazia) a embalagem de capa direto pela lista.
+            $embalagem = (string)($entrada['embalagem'] ?? '');
+            responder_loja(alterar_loja($versao, function (array $loja) use ($id, $embalagem): array {
+                $i = achar_indice($loja['produtos'], $id);
+                if ($embalagem === '') {
+                    unset($loja['produtos'][$i]['embalagemCapa']);
+                } else {
+                    achar_indice($loja['produtos'][$i]['embalagens'] ?? [], $embalagem);
+                    $loja['produtos'][$i]['embalagemCapa'] = $embalagem;
+                }
+                return $loja;
+            }));
+
         case 'excluirProduto':
             responder_loja(alterar_loja($versao, function (array $loja) use ($id): array {
                 $i = achar_indice($loja['produtos'], $id);

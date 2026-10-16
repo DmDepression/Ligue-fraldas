@@ -86,6 +86,10 @@ produtos.forEach((produto, indice) => {
     }
   });
 
+  if (produto.embalagemCapa && !idsEmbalagens.has(produto.embalagemCapa)) {
+    erros.push(`${ref}: embalagem de capa inexistente: ${produto.embalagemCapa}.`);
+  }
+
   if (embalagens.length) {
     tamanhos.forEach((t) => {
       const temEmbalagem = embalagens.some((e) => !e.tamanhos || !e.tamanhos.length || e.tamanhos.includes(t));

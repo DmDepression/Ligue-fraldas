@@ -64,6 +64,7 @@
           '</div>' +
         '</article>';
 
+      marcarEmbalagemCapa(p);
       ligarGaleria(p);
       ligarOpcoes(p);
       ligarCompra(p);
@@ -97,13 +98,15 @@
     }
 
     function galeria(p) {
+      var capa = L.fotoCapa(p);
+      var indiceCapa = Math.max(0, p.imagens.indexOf(capa));
       var principal = p.imagens.length
-        ? L.imagemProduto(p.imagens[0], p.nome, 'width="800" height="800" fetchpriority="high"')
+        ? L.imagemProduto(capa, p.nome, 'width="800" height="800" fetchpriority="high"')
         : L.semImagem();
 
       var miniaturas = p.imagens.length > 1
         ? '<ul class="produto__miniaturas">' + p.imagens.map(function (src, i) {
-            return '<li><button type="button" class="miniatura" data-imagem="' + i + '" aria-pressed="' + (i === 0) + '"' +
+            return '<li><button type="button" class="miniatura" data-imagem="' + i + '" aria-pressed="' + (i === indiceCapa) + '"' +
               ' aria-label="Ver imagem ' + (i + 1) + ' de ' + p.imagens.length + '">' +
               '<img src="' + esc(src) + '" alt="" loading="lazy" width="96" height="96" data-fallback></button></li>';
           }).join('') + '</ul>'
@@ -175,6 +178,20 @@
             '<dt' + (i.rotulo ? '' : ' class="sr-only"') + '>' + esc(i.rotulo || 'Informação') + '</dt>' +
             '<dd>' + esc(i.valor) + '</dd></div>';
         }).join('') + '</dl></section>';
+    }
+
+    // A página abre com a embalagem de capa já escolhida (e o tamanho dela, se for um só),
+    // mostrando o mesmo preço e a mesma foto do card.
+    function marcarEmbalagemCapa(p) {
+      var capa = L.embalagemDaCapa(p);
+      var form = alvo.querySelector('[data-opcoes]');
+      if (!capa || !form) return;
+      if (capa.tamanhos.length === 1) {
+        var tamanho = form.querySelector('input[data-grupo="Tamanho"][value="' + CSS.escape(capa.tamanhos[0]) + '"]');
+        if (tamanho) tamanho.checked = true;
+      }
+      var embalagem = form.querySelector('input[data-grupo="Embalagem"][value="' + CSS.escape(capa.id) + '"]');
+      if (embalagem) embalagem.checked = true;
     }
 
     function ligarGaleria(p) {
