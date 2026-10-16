@@ -226,7 +226,9 @@
           '<td data-rotulo="Embalagem" class="emb__nome">↳ ' + esc(e.rotulo) +
             (e.tamanhos && e.tamanhos.length ? ' <small>(' + esc(e.tamanhos.map(codigoTamanho).join(', ')) + ')</small>' : '') + '</td><td></td>' +
           '<td data-rotulo="Preço">' + formPreco(e.precoCentavos, p.nome + ' — ' + e.rotulo) + '</td>' +
-          '<td data-rotulo="Situação">' + botaoSituacao(embAtiva) + '</td><td></td></tr>';
+          '<td data-rotulo="Situação">' + botaoSituacao(embAtiva) + '</td>' +
+          '<td data-rotulo="Capa"><label class="marcar" title="O card do site mostra o preço e a foto desta embalagem">' +
+            '<input type="checkbox" data-capa' + (p.embalagemCapa === e.id ? ' checked' : '') + '> Capa</label></td></tr>';
       }).join('');
       return linha;
     }).join('') || '<tr><td colspan="5" class="vazio">Nenhum produto encontrado.</td></tr>';
@@ -264,6 +266,14 @@
       alterar('excluirProduto', { id: a.p.id })
         .then(function () { aviso('"' + a.p.nome + '" foi para a Lixeira.'); })
         .catch(function (err) { aviso(err.message, true); });
+    } else if (ev.target.closest('[data-capa]')) {
+      var marcar = ev.target.checked;
+      alterar('definirCapa', { id: a.p.id, embalagem: marcar ? a.e.id : '' })
+        .then(function () {
+          aviso(marcar ? 'O card de "' + a.p.nome + '" agora mostra ' + a.e.rotulo + ' (' + moeda(a.e.precoCentavos) + ').'
+            : 'O card de "' + a.p.nome + '" volta a mostrar o menor preço.');
+        })
+        .catch(function (err) { aviso(err.message, true); desenharProdutos(); });
     } else if (ev.target.closest('[data-alternar]')) {
       var novo = a.item.ativo === false;
       if (!novo && !confirm('Suspender "' + a.nome + '"? ' + (a.e ? 'Essa embalagem' : 'Ele') + ' some do site até ser reativado.')) return;
@@ -322,6 +332,7 @@
       preco: p && !embalagens.length ? paraInput(p.precoCentavos) : '',
       embalagens: embalagens,
       imagens: imagens,
+      capa: p && p.embalagemCapa ? chavePorEmbalagem(p.embalagemCapa) : '',
       informacoes: ((p && p.informacoes) || []).map(function (i) { return { rotulo: i.rotulo || '', valor: i.valor || '' }; })
     };
   }
@@ -366,6 +377,7 @@
           '<label class="campo">Embalagem<input data-campo="rotulo" value="' + esc(e.rotulo) + '" maxlength="60" placeholder="Ex.: 16 unidades"></label>' +
           '<label class="campo campo--preco">Preço (R$)<input data-campo="precoEmb" inputmode="decimal" value="' + esc(e.preco) + '" placeholder="42,90"></label>' +
           '<label class="marcar"><input type="checkbox" data-campo="ativoEmb"' + (e.ativo ? ' checked' : '') + '> Ativa</label>' +
+          '<label class="marcar" title="O card do site mostra o preço e a foto desta embalagem"><input type="checkbox" data-campo="capaEmb"' + (rascunho.capa === e.k ? ' checked' : '') + '> Capa do anúncio</label>' +
           '<button type="button" class="btn btn--sm btn--contorno" data-remover="embalagem" aria-label="Remover embalagem ' + (i + 1) + '">×</button>' +
         '</div>' +
         '<div class="embalagem__tamanhos">' + marcadoresDeTamanho(e) + '</div></li>';
@@ -426,6 +438,11 @@
     if (emb && campo === 'rotulo') emb.rotulo = el.value;
     if (emb && campo === 'precoEmb') emb.preco = el.value;
     if (emb && campo === 'ativoEmb') emb.ativo = el.checked;
+    if (emb && campo === 'capaEmb') {
+      // Uma capa por produto: marcar uma desmarca as outras; desmarcar volta ao menor preço.
+      rascunho.capa = el.checked ? emb.k : '';
+      document.querySelectorAll('#lista-embalagens [data-campo=capaEmb]').forEach(function (c) { if (c !== el) c.checked = false; });
+    }
     if (emb && el.dataset.tam) {
       emb.tam = emb.tam.filter(function (k) { return k !== el.dataset.tam; });
       if (el.checked) emb.tam.push(el.dataset.tam);
@@ -487,6 +504,7 @@
       rascunho.imagens.forEach(function (img) { img.regras.forEach(function (r) { if (r.tamanho === li.dataset.k) r.tamanho = ''; }); });
     }
     if (remover === 'embalagem') {
+      if (rascunho.capa === li.dataset.k) rascunho.capa = '';
       rascunho.embalagens = rascunho.embalagens.filter(function (e) { return e.k !== li.dataset.k; });
       rascunho.imagens.forEach(function (img) { img.regras.forEach(function (r) { if (r.embalagem === li.dataset.k) r.embalagem = ''; }); });
     }
@@ -613,7 +631,8 @@
       palavrasChave: rascunho.palavrasChave.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
       destaque: rascunho.destaque,
       ativo: rascunho.ativo,
-      ordem: rascunho.ordem
+      ordem: rascunho.ordem,
+      embalagemCapa: embalagens.length && rascunho.capa ? idPorChave[rascunho.capa] : undefined
     };
   }
 

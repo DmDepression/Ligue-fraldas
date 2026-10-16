@@ -460,6 +460,11 @@ function produto_do_formulario(array $entrada, array $loja, ?string $idExistente
     ];
     if ($embalagens) {
         $produto['embalagens'] = $embalagens;
+        // Embalagem de capa: o card do site mostra o preço e a foto dela.
+        $capa = (string)($entrada['embalagemCapa'] ?? '');
+        if ($capa !== '' && in_array($capa, $idsEmbalagens, true)) {
+            $produto['embalagemCapa'] = $capa;
+        }
     } else {
         $produto['precoCentavos'] = $entrada['precoCentavos'];
     }

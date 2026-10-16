@@ -168,6 +168,18 @@ ok(st == 200 and next(x for x in r['produtos'] if x['id'] == 'tena-slip-noturna'
 st, r = api('alternarAtivo', {'versao': v, 'id': 'tena-slip-noturna', 'ativo': True})
 ok(st == 200 and 'ativo' not in next(x for x in r['produtos'] if x['id'] == 'tena-slip-noturna'), 'produto reativado'); v = r['versao']
 
+print('8b. Embalagem de capa')
+st, r = api('definirCapa', {'versao': v, 'id': 'bigfral-dermaplus', 'embalagem': 'pacote-menor'})
+ok(st == 200 and next(x for x in r['produtos'] if x['id'] == 'bigfral-dermaplus')['embalagemCapa'] == 'pacote-menor', 'capa marcada pela lista'); v = r['versao']
+st, r = api('definirCapa', {'versao': v, 'id': 'bigfral-dermaplus', 'embalagem': 'nao-existe'})
+ok(st == 422, 'capa com embalagem inexistente é recusada')
+st, r = api('definirCapa', {'versao': v, 'id': 'bigfral-dermaplus', 'embalagem': ''})
+ok(st == 200 and 'embalagemCapa' not in next(x for x in r['produtos'] if x['id'] == 'bigfral-dermaplus'), 'capa desmarcada'); v = r['versao']
+st, r = api('salvarProduto', {'versao': v, 'id': p['id'], 'produto': dict(editado, embalagemCapa='caixa-40')})
+ok(st == 200 and r['produto'].get('embalagemCapa') == 'caixa-40', 'capa salva pelo editor'); v = r['versao']
+st, r = api('salvarProduto', {'versao': v, 'id': p['id'], 'produto': dict(editado, embalagemCapa='inventada')})
+ok(st == 200 and 'embalagemCapa' not in r['produto'], 'capa inválida no editor é ignorada'); v = r['versao']
+
 print('9. Lixeira')
 st, r = api('excluirProduto', {'versao': v, 'id': 'oleo-girassol-farmachem'})
 ok(st == 200 and len(r['lixeira']) == 1 and r['lixeira'][0]['excluidoEm'], 'produto foi para a lixeira'); v = r['versao']

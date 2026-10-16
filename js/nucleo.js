@@ -195,6 +195,8 @@
       descricao: texto(bruto.descricao),
       precoCentavos: preco,
       embalagens: embalagens,
+      // Embalagem escolhida no painel como capa: o card mostra o preço e a foto dela.
+      embalagemCapa: (embalagens.find(function (e) { return e.id === texto(bruto.embalagemCapa); }) || {}).id || '',
       tamanhos: tamanhos,
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
@@ -299,8 +301,25 @@
   // Preço a exibir para a escolha atual. Sem embalagem escolhida, considera só as
   // embalagens que existem para o tamanho marcado (ou todas, sem tamanho).
   // Retorna { centavos, aPartirDe } ou null.
+  L.embalagemDaCapa = function (p) {
+    return p.embalagemCapa ? p.embalagens.find(function (e) { return e.id === p.embalagemCapa; }) || null : null;
+  };
+
+  L.fotoCapa = function (p) {
+    var capa = L.embalagemDaCapa(p);
+    if (capa) {
+      var foto = L.fotoDaOpcao(p, capa.tamanhos.length === 1 ? capa.tamanhos[0] : '', capa.id);
+      // Embalagem que vale para vários tamanhos (ex.: Pants 32): usa a primeira foto ligada a ela.
+      var ligada = (p.fotosPorOpcao || []).find(function (f) { return f.embalagem === capa.id; });
+      if (foto || ligada) return foto || ligada.imagem;
+    }
+    return p.imagens[0] || '';
+  };
+
   L.precoDaEscolha = function (p, tamanho, embalagemId) {
     if (!p || !p.precoCentavos) return null;
+    var capa = !tamanho && !embalagemId && L.embalagemDaCapa(p);
+    if (capa) return { centavos: capa.precoCentavos, aPartirDe: false, embalagem: capa };
     if (!p.embalagens.length) return { centavos: p.precoCentavos, aPartirDe: false };
     var escolhida = embalagemId && p.embalagens.find(function (e) { return e.id === embalagemId; });
     if (escolhida) return { centavos: escolhida.precoCentavos, aPartirDe: false };
@@ -475,7 +494,7 @@
     return '' +
       '<article class="card">' +
         '<div class="card__midia">' +
-          L.imagemProduto(p.imagens[0], p.nome, 'loading="lazy" decoding="async" width="480" height="480"') +
+          L.imagemProduto(L.fotoCapa(p), p.nome, 'loading="lazy" decoding="async" width="480" height="480"') +
           (p.destaque ? '<span class="selo">Destaque</span>' : '') +
         '</div>' +
         '<div class="card__corpo">' +
@@ -483,7 +502,7 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           etiquetas +
-          (precoCard ? '<p class="produto-preco">' + (precoCard.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(precoCard.centavos) + '<small>por pacote</small></p>' : '') +
+          (precoCard ? '<p class="produto-preco">' + (precoCard.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(precoCard.centavos) + '<small>por pacote' + (precoCard.embalagem ? ' · ' + L.esc(precoCard.embalagem.rotulo) : '') + '</small></p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
           (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>' + (somenteTamanhoUnico ? 'Escolher embalagem' : 'Escolher tamanho e embalagem') + '</span></a>' : '') +
