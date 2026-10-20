@@ -137,14 +137,15 @@
       return grupos.concat(p.variacoes);
     }
 
+    // Grupo com uma opção só também aparece, já marcado: o cliente precisa ver o tamanho
+    // e a embalagem que está levando (ex.: só P/M ativo), mesmo sem ter o que escolher.
     function opcoes(p) {
       var grupos = gruposDeOpcoes(p);
       if (!grupos.length) return '';
-      var gruposVisiveis = grupos.filter(function (g) { return g.opcoes.length > 1; });
-      if (!gruposVisiveis.length) return '';
-      var escolherTamanho = gruposVisiveis.some(function (g) { return g.nome === 'Tamanho'; });
-      var escolherEmbalagem = gruposVisiveis.some(function (g) { return g.nome === 'Embalagem'; });
-      var dica = escolherTamanho && escolherEmbalagem
+      var gruposComEscolha = grupos.filter(function (g) { return g.opcoes.length > 1; });
+      var escolherTamanho = gruposComEscolha.some(function (g) { return g.nome === 'Tamanho'; });
+      var escolherEmbalagem = gruposComEscolha.some(function (g) { return g.nome === 'Embalagem'; });
+      var dica = !gruposComEscolha.length ? '' : escolherTamanho && escolherEmbalagem
         ? 'Escolha o tamanho e a embalagem (quantidade de unidades) antes de adicionar ao carrinho.'
         : escolherEmbalagem
           ? 'Escolha a embalagem (quantidade de unidades) antes de adicionar ao carrinho.'
@@ -153,7 +154,7 @@
             : 'Escolha uma opção antes de adicionar ao carrinho.';
 
       return '<form class="produto__opcoes" data-opcoes>' +
-        gruposVisiveis.map(function (g, gi) {
+        grupos.map(function (g, gi) {
           var unica = g.opcoes.length === 1;
           return '<fieldset class="opcoes">' +
             '<legend class="opcoes__titulo">' + esc(g.nome) + '</legend>' +
@@ -165,7 +166,7 @@
                 '<span>' + esc(o) + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
-        '<p class="produto__dica">' + dica + '</p>' +
+        (dica ? '<p class="produto__dica">' + dica + '</p>' : '') +
         '</form>';
     }
 
