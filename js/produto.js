@@ -316,6 +316,25 @@
       document.head.appendChild(script);
     }
 
+    // Preço para o Google: um valor, ou a faixa entre as embalagens ativas.
+    // A disponibilidade fica de fora porque a loja só confirma no atendimento.
+    function ofertaSeo(p, url) {
+      if (!p.precoCentavos) return null;
+      var reais = function (centavos) { return (centavos / 100).toFixed(2); };
+      var precos = p.embalagens.length
+        ? p.embalagens.map(function (e) { return e.precoCentavos; })
+        : [p.precoCentavos];
+      var menor = Math.min.apply(null, precos);
+      var maior = Math.max.apply(null, precos);
+      if (menor === maior) {
+        return { '@type': 'Offer', url: url, priceCurrency: 'BRL', price: reais(menor) };
+      }
+      return {
+        '@type': 'AggregateOffer', url: url, priceCurrency: 'BRL',
+        lowPrice: reais(menor), highPrice: reais(maior), offerCount: precos.length
+      };
+    }
+
     function atualizarSeo(p, categoria) {
       var url = new URL(L.urlProduto(p.id), baseSite).href;
       var titulo = p.nome + ' – ' + C.loja.nome;
@@ -343,6 +362,8 @@
       if (p.descricao) produto.description = p.descricao;
       if (p.marca) produto.brand = { '@type': 'Brand', name: p.marca };
       if (imagens.length) produto.image = imagens;
+      var oferta = ofertaSeo(p, url);
+      if (oferta) produto.offers = oferta;
       jsonLd(produto);
 
       jsonLd({

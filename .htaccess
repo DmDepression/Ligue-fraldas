@@ -4,6 +4,8 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^(?:\.git|\.github|ferramentas)(?:/|$) - [F,NC,L]
+  # O sitemap é gerado do catálogo atual; o endereço antigo continua funcionando.
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
 </IfModule>
 
 <FilesMatch "\.(?:md|cjs|ps1|ya?ml)$">

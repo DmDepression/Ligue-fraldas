@@ -38,7 +38,8 @@ img/produtos/           Fotos dos produtos iniciais (versionadas no Git)
 img/uploads/            Fotos enviadas pelo painel (criadas na hospedagem; fora do Git)
 img/icones/, favicon.ico, img/og-image.png   Ícones e imagem de compartilhamento
 ferramentas/            Validação do catálogo, testes e geradores (bloqueada ao público pelo .htaccess)
-robots.txt, sitemap.xml, site.webmanifest
+robots.txt, site.webmanifest
+sitemap.php             Sitemap gerado do catálogo atual (também responde em /sitemap.xml)
 ```
 
 ## Como ver o site no computador
@@ -159,7 +160,9 @@ Ela confere:
 - quantidade do rótulo diferente da tabela de informações;
 - marca com hífen escrita sem o hífen.
 
-A mesma validação roda no GitHub Actions.
+A mesma validação roda no GitHub Actions em cada PR e na `main` (`.github/workflows/validar.yml`), junto com a
+sintaxe do PHP e o teste de ponta a ponta do painel (`ferramentas/testar-painel.py`). O site não é publicado
+pelo GitHub: a publicação é o deploy do cPanel.
 
 Para conferir a interface inteira (foto, preço, carrinho e WhatsApp de todas as combinações):
 1. Suba o servidor local e abra qualquer página no navegador.
@@ -192,7 +195,7 @@ em `sameAs` nos dados estruturados da página inicial. Ao trocar o perfil, atual
 ## Publicação
 
 O site está em <https://liguefraldasgeriatricas.com.br/> (HostGator, cPanel com PHP). Os endereços `canonical`,
-`og:url`, `robots.txt` e `sitemap.xml` já usam esse domínio.
+`og:url`, `robots.txt` e o `sitemap.php` (constante `URL_SITE`) já usam esse domínio.
 
 **Mesclar uma PR no GitHub não publica o site.** A publicação acontece no cPanel:
 
@@ -270,7 +273,7 @@ do cPanel, já bastam.
 - Open Graph (prévia ao compartilhar no WhatsApp e no Facebook) com `img/og-image.png`
 - Dados estruturados `Store` (nome, razão social, CNPJ, endereço, telefones) e `WebSite` na página inicial,
   `BreadcrumbList` no catálogo, `Product` e `BreadcrumbList` gerados em cada página de produto
-- `canonical`, `robots.txt`, `sitemap.xml`, favicon, ícones e `site.webmanifest`
+- `canonical`, `robots.txt`, sitemap com todos os produtos ativos (`sitemap.php`), favicon, ícones e `site.webmanifest`
 
 Horário de funcionamento, coordenadas, CEP e faixa de preço **não** foram incluídos porque não foram informados.
 Se forem confirmados, podem ser adicionados ao bloco `Store` do `index.html` (`openingHoursSpecification`,
