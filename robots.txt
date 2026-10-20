@@ -3,4 +3,4 @@ Allow: /
 Disallow: /ferramentas/
 Disallow: /admin/
 
-Sitemap: https://liguefraldasgeriatricas.com.br/sitemap.xml
+Sitemap: https://liguefraldasgeriatricas.com.br/sitemap.php

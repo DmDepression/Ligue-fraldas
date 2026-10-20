@@ -8,7 +8,12 @@
 import json, os, sys, uuid, urllib.request, urllib.error, http.cookiejar
 
 BASE = 'http://127.0.0.1:8090/admin/'
+SITEMAP = 'http://127.0.0.1:8090/sitemap.php'
 SITE = sys.argv[1]  # pasta da cópia de teste
+# Quantidades do catálogo versionado: o teste não quebra quando produtos entram ou saem.
+TOTAL_PRODUTOS = len(json.load(open(os.path.join(SITE, 'data/produtos.json'), encoding='utf-8')))
+PRODUTOS_ATIVOS = sum(1 for p in json.load(open(os.path.join(SITE, 'data/produtos.json'), encoding='utf-8')) if p.get('ativo') is not False)
+TOTAL_CATEGORIAS = len(json.load(open(os.path.join(SITE, 'data/categorias.json'), encoding='utf-8')))
 jar = http.cookiejar.CookieJar()
 abrir = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 csrf = ''
@@ -92,8 +97,12 @@ ok(st == 403, 'sem token CSRF é recusado (403)')
 
 print('3. Importação do catálogo atual')
 st, loja = api('carregar')
-ok(st == 200 and loja['importado'] is True and len(loja['produtos']) == 38 and len(loja['categorias']) == 9, '38 produtos e 9 categorias importados, ainda não gravado')
+ok(st == 200 and loja['importado'] is True and len(loja['produtos']) == TOTAL_PRODUTOS and len(loja['categorias']) == TOTAL_CATEGORIAS,
+   '%d produtos e %d categorias importados, ainda não gravado' % (TOTAL_PRODUTOS, TOTAL_CATEGORIAS))
 v = loja['versao']
+st, xml = req(SITEMAP)
+ok(st == 200 and xml.count('produto.html?id=') == PRODUTOS_ATIVOS and '<loc>https://liguefraldasgeriatricas.com.br/</loc>' in xml,
+   'sitemap lista os %d produtos ativos antes de o painel gravar' % PRODUTOS_ATIVOS)
 
 print('4. Fotos')
 st, r = enviar(os.path.join(SITE, 'img/produtos/higifral-confort-g.jpg'))
@@ -119,6 +128,20 @@ st, r = api('salvarProduto', {'versao': v, 'produto': {
     'nome': 'Fralda Teste', 'categoria': 'fraldas-geriatricas', 'descricao': 'x', 'tamanhos': ['Único'],
     'precoCentavos': 1000, 'imagens': ['../admin/.dados/credenciais.php', 'img/produtos/nao-existe.jpg']}})
 ok(st == 422 and any('foto' in e for e in r['erros']), 'caminho de foto malicioso ou inexistente é ignorado')
+st, r = api('salvarProduto', {'versao': v, 'produto': {
+    'nome': 'Fralda Teste', 'categoria': 'fraldas-geriatricas', 'descricao': 'x', 'tamanhos': ['M', 'G'],
+    'embalagens': [{'rotulo': '10 unidades', 'precoCentavos': 1000, 'tamanhos': ['GG']}], 'imagens': [foto1],
+    'fotosPorOpcao': [{'imagem': foto1, 'tamanho': 'XG'}, {'imagem': foto1, 'embalagem': 'nao-existe'}]}})
+ok(st == 422 and any('"GG" não está na lista' in e for e in r['erros']) and any('"XG"' in e for e in r['erros'])
+   and any('embalagem que não existe' in e for e in r['erros']), 'vínculos com tamanho ou embalagem inexistente são recusados')
+st, r = api('salvarProduto', {'versao': v, 'produto': {
+    'nome': 'Fralda Teste', 'categoria': 'fraldas-geriatricas', 'descricao': 'x', 'tamanhos': ['G​', 'XG'],
+    'embalagens': [{'rotulo': '8 unidades', 'precoCentavos': 1000, 'tamanhos': ['G​']},
+                   {'rotulo': '7 unidades', 'precoCentavos': 900, 'tamanhos': ['XG']}], 'imagens': [foto1]}})
+ok(st == 200 and r['produto']['embalagens'][0].get('tamanhos') == ['G'], 'tamanho com caractere invisível mantém a embalagem só no G')
+v = r['versao']
+st, r = api('excluirProduto', {'versao': v, 'id': r['produto']['id']}); v = r['versao']
+st, r = api('excluirDefinitivo', {'versao': v, 'id': 'fralda-teste'}); v = r['versao']
 
 print('6. Criar produto completo')
 novo = {
@@ -140,10 +163,12 @@ p = r['produto']
 ok(p['id'] == 'fralda-teste-acao-aspas', 'id gerado a partir do nome: ' + p['id'])
 ok('tamanhos' not in p['embalagens'][2], 'embalagem com todos os tamanhos vale para todos')
 ok([e['id'] for e in p['embalagens']] == ['pacote-10-m', 'pacote-8-g', 'caixa-40'], 'ids de embalagem: %s' % [e['id'] for e in p['embalagens']])
-ok(len(r['produtos']) == 39, '39 produtos')
+ok(len(r['produtos']) == TOTAL_PRODUTOS + 1, '%d produtos' % (TOTAL_PRODUTOS + 1))
 v = r['versao']
 loja_arquivo = json.load(open(os.path.join(SITE, 'data/loja.json'), encoding='utf-8'))
-ok(len(loja_arquivo['produtos']) == 39 and loja_arquivo['versao'] == v, 'data/loja.json gravado')
+ok(len(loja_arquivo['produtos']) == TOTAL_PRODUTOS + 1 and loja_arquivo['versao'] == v, 'data/loja.json gravado')
+st, xml = req(SITEMAP)
+ok(st == 200 and 'produto.html?id=fralda-teste-acao-aspas' in xml, 'sitemap inclui o produto criado pelo painel')
 
 print('7. Conflito entre janelas')
 st, r = api('alterarPreco', {'versao': v - 1, 'id': p['id'], 'embalagem': 'caixa-40', 'precoCentavos': 100})
@@ -165,6 +190,8 @@ st, r = api('alternarAtivo', {'versao': v, 'id': p['id'], 'embalagem': 'pacote-8
 ok(st == 200, 'embalagem suspensa'); v = r['versao']
 st, r = api('alternarAtivo', {'versao': v, 'id': 'tena-slip-noturna', 'ativo': False})
 ok(st == 200 and next(x for x in r['produtos'] if x['id'] == 'tena-slip-noturna')['ativo'] is False, 'produto suspenso'); v = r['versao']
+st, xml = req(SITEMAP)
+ok('id=tena-slip-noturna<' not in xml, 'produto suspenso sai do sitemap')
 st, r = api('alternarAtivo', {'versao': v, 'id': 'tena-slip-noturna', 'ativo': True})
 ok(st == 200 and 'ativo' not in next(x for x in r['produtos'] if x['id'] == 'tena-slip-noturna'), 'produto reativado'); v = r['versao']
 
@@ -205,7 +232,7 @@ st, r = api('listarHistorico')
 ok(st == 200 and len(r['versoes']) >= 10, '%d versões guardadas' % len(r['versoes']))
 mais_antiga = r['versoes'][-1]
 st, r = api('restaurarVersao', {'versao': v, 'arquivo': mais_antiga['arquivo']})
-ok(st == 200 and len(r['produtos']) == 39, 'restaurou a primeira versão gravada (com o produto de teste)'); v = r['versao']
+ok(st == 200 and len(r['produtos']) == TOTAL_PRODUTOS + 1, 'restaurou a primeira versão gravada (com o produto de teste)'); v = r['versao']
 st, r = api('restaurarVersao', {'versao': v, 'arquivo': '../../data/produtos.json'})
 ok(st == 422, 'nome de arquivo malicioso no histórico é recusado')
 
@@ -218,3 +245,4 @@ ok(st == 401, 'depois de sair, a API recusa')
 
 print()
 print('FALHAS:', falhas if falhas else 'nenhuma')
+sys.exit(1 if falhas else 0)

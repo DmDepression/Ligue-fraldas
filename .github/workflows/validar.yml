@@ -1,0 +1,44 @@
+name: Validar site e painel
+
+# O site é publicado pela HostGator (deploy do cPanel, veja .cpanel.yml). Este workflow
+# só confere o projeto: roda em cada PR, para achar o erro antes do merge e do deploy.
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Validar catálogo e JavaScript
+        run: |
+          node ferramentas/validar-catalogo.cjs
+          for arquivo in js/*.js admin/admin.js; do node --check "$arquivo"; done
+
+      - name: Conferir a sintaxe do PHP
+        run: |
+          php -v
+          find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Testar o painel de ponta a ponta
+        run: |
+          # O teste cria credenciais e produtos: roda numa cópia descartável do site.
+          site="$RUNNER_TEMP/site"
+          mkdir -p "$site"
+          cp -R admin css data img js index.html catalogo.html produto.html sitemap.php "$site/"
+          rm -f "$site/data/loja.json" "$site/admin/.dados/credenciais.php"
+          php -S 127.0.0.1:8090 -t "$site" > "$RUNNER_TEMP/php.log" 2>&1 &
+          for i in $(seq 1 20); do curl -s -o /dev/null http://127.0.0.1:8090/ && break; sleep 0.5; done
+          python3 ferramentas/testar-painel.py "$site"
+
+      - name: Mostrar o log do PHP
+        if: failure()
+        run: cat "$RUNNER_TEMP/php.log" || true
