@@ -37,7 +37,7 @@ input:focus,select:focus,.btn:focus-visible{outline:3px solid #8bbcf0;outline-of
 .tabela tr.suspenso td{background:#faf6f6}
 .tabela tr.suspenso .prod{opacity:.55}
 .prod{display:flex;align-items:center;gap:.75rem}
-.prod img,.prod__sem{width:48px;height:48px;border-radius:8px;object-fit:cover;background:#eef2f5;flex:none}
+.prod img,.prod__sem{width:48px;height:48px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid #e6ebf0;flex:none}
 .prod small{display:block;color:#5b6875}
 .preco{display:flex;align-items:center;gap:.4rem}
 .preco input{width:6.5rem;text-align:right}
@@ -105,7 +105,11 @@ textarea:focus{outline:3px solid #8bbcf0;outline-offset:1px}
 
 .fotos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.8rem}
 .foto{border:1px solid #e6ebf0;border-radius:10px;padding:.6rem;background:#fafbfc;display:grid;gap:.5rem;align-content:start}
-.foto__img{position:relative;aspect-ratio:1;background:#fff;border-radius:8px;display:grid;place-items:center;overflow:hidden}
+.foto__img{position:relative;aspect-ratio:1;background:#fff;border-radius:8px;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;overflow:hidden}
+.guia-fotos{border:1px solid #e6ebf0;border-radius:10px;background:#f4f8fc;padding:.6rem .8rem;font-size:.9rem}
+.guia-fotos summary{font-weight:700;color:#0b5cad;cursor:pointer}
+.guia-fotos ol{margin:.6rem 0;padding-left:1.2rem;display:grid;gap:.35rem}
+.envio-alerta{color:#8a4b00}
 .foto__img img{width:100%;height:100%;object-fit:contain}
 .foto__capa{position:absolute;top:.4rem;left:.4rem;background:#0b5cad;color:#fff;font-size:.75rem;font-weight:700;padding:.1rem .5rem;border-radius:99px}
 .foto__acoes{display:flex;flex-wrap:wrap;gap:.3rem}
