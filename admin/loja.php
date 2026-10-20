@@ -340,9 +340,14 @@ function produto_do_formulario(array $entrada, array $loja, ?string $idExistente
         if (!$preco($e['precoCentavos'] ?? null)) {
             $erros[] = "Embalagem \"$rotulo\": informe um preço válido.";
         }
+        // Mesma limpeza dos tamanhos do produto: um caractere invisível colado (WhatsApp, Word)
+        // não pode desfazer o vínculo, senão a embalagem passaria a valer para todos os tamanhos.
         $tamanhosEmb = [];
         foreach (is_array($e['tamanhos'] ?? null) ? $e['tamanhos'] : [] as $t) {
-            if (in_array($t, $tamanhos, true) && !in_array($t, $tamanhosEmb, true)) {
+            $t = texto_limpo($t, 60);
+            if (!in_array($t, $tamanhos, true)) {
+                $erros[] = "Embalagem \"$rotulo\": o tamanho \"$t\" não está na lista de tamanhos.";
+            } elseif (!in_array($t, $tamanhosEmb, true)) {
                 $tamanhosEmb[] = $t;
             }
         }
@@ -400,14 +405,24 @@ function produto_do_formulario(array $entrada, array $loja, ?string $idExistente
         if (!is_array($f) || !in_array($f['imagem'] ?? null, $imagens, true)) {
             continue;
         }
+        // Vínculo que não confere vira erro: descartá-lo calado deixaria uma foto de
+        // "G + 16 unidades" aparecendo para qualquer tamanho dessa embalagem.
         $item = [];
-        $tamanho = (string)($f['tamanho'] ?? '');
-        $embalagem = (string)($f['embalagem'] ?? '');
-        if ($tamanho !== '' && in_array($tamanho, $codigos, true)) {
-            $item['tamanho'] = $tamanho;
+        $tamanho = codigo_tamanho(texto_limpo($f['tamanho'] ?? '', 60));
+        $embalagem = texto_limpo($f['embalagem'] ?? '', 80);
+        if ($tamanho !== '') {
+            if (in_array($tamanho, $codigos, true)) {
+                $item['tamanho'] = $tamanho;
+            } else {
+                $erros[] = "Uma foto está ligada ao tamanho \"$tamanho\", que não está na lista de tamanhos.";
+            }
         }
-        if ($embalagem !== '' && in_array($embalagem, $idsEmbalagens, true)) {
-            $item['embalagem'] = $embalagem;
+        if ($embalagem !== '') {
+            if (in_array($embalagem, $idsEmbalagens, true)) {
+                $item['embalagem'] = $embalagem;
+            } else {
+                $erros[] = 'Uma foto está ligada a uma embalagem que não existe mais. Revise os vínculos das fotos.';
+            }
         }
         if ($item) {
             $item['imagem'] = $f['imagem'];
