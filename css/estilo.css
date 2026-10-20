@@ -577,8 +577,10 @@ ul[class], ol[class] { list-style: none; margin: 0; padding: 0; }
 .card__midia {
   position: relative;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr); /* foto em pé cabe inteira (veja .produto__imagem) */
   place-items: center;
   aspect-ratio: 1;
+  min-height: 0; /* a foto não pode esticar o quadrado */
   padding: .75rem;
   background: #fff;
   border-bottom: 1px solid var(--borda);
@@ -1110,6 +1112,9 @@ a.contato-card--instagram .contato-card__icone {
 
 .produto__imagem {
   display: grid;
+  /* Linha e coluna presas ao quadrado: sem isso, foto em pé (mais alta que larga)
+     estica a linha da grade e é cortada em cima e embaixo. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   aspect-ratio: 1;
   overflow: hidden;

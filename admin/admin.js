@@ -528,6 +528,24 @@
 
   /* ---- envio de fotos ---- */
 
+  // Avisos para a foto ficar boa no site (que mostra a foto inteira num quadrado).
+  // Não impedem o envio: a regra completa está no guia "Como preparar as fotos".
+  function problemasDaFoto(largura, altura) {
+    var problemas = [];
+    var menor = Math.min(largura, altura);
+    var proporcao = Math.max(largura, altura) / menor;
+    if (menor < 800) problemas.push('pequena (' + largura + '×' + altura + ' px): pode ficar borrada, o ideal é ter pelo menos 800 px no lado menor');
+    if (proporcao > 2) problemas.push('muito comprida: o pacote vai aparecer pequeno no quadrado, recorte mais perto dele');
+    return problemas;
+  }
+
+  function medirFoto(arquivo) {
+    if (!window.createImageBitmap) return Promise.resolve(null);
+    return createImageBitmap(arquivo).then(function (bitmap) {
+      return { largura: bitmap.width, altura: bitmap.height };
+    }).catch(function () { return null; });
+  }
+
   // Reduz a foto no navegador antes de enviar (até 1600 px, JPEG): envio mais rápido e
   // dentro do limite da hospedagem. Se o navegador não conseguir, envia o original.
   function reduzirFoto(arquivo) {
@@ -564,20 +582,29 @@
     var status = $('#envio-status');
     var feitos = 0;
     var falhas = [];
+    var alertas = [];
     status.textContent = 'Enviando ' + arquivos.length + ' foto(s)…';
     arquivos.reduce(function (fila, arquivo) {
       return fila.then(function () {
-        return enviarFoto(arquivo).then(function (r) {
-          if (!rascunho) return;
-          rascunho.imagens.push({ caminho: r.caminho, regras: [] });
-          alterado = true;
-          feitos += 1;
-          desenharFotos();
+        // Mede a foto original (antes da redução) para avisar sobre resolução e formato.
+        return medirFoto(arquivo).then(function (medida) {
+          return enviarFoto(arquivo).then(function (r) {
+            if (medida) {
+              problemasDaFoto(medida.largura, medida.altura).forEach(function (p) { alertas.push(arquivo.name + ': ' + p + '.'); });
+            }
+            if (!rascunho) return;
+            rascunho.imagens.push({ caminho: r.caminho, regras: [] });
+            alterado = true;
+            feitos += 1;
+            desenharFotos();
+          });
         }).catch(function (erro) { falhas.push(arquivo.name + ': ' + erro.message); });
       });
     }, Promise.resolve()).then(function () {
-      status.textContent = feitos + ' foto(s) enviada(s).' + (falhas.length ? ' Falharam: ' + falhas.join(' · ') : '') +
-        (feitos ? ' Lembre de salvar o produto.' : '');
+      status.innerHTML = esc(feitos + ' foto(s) enviada(s).' + (falhas.length ? ' Falharam: ' + falhas.join(' · ') : '') +
+        (feitos ? ' Lembre de salvar o produto.' : '')) +
+        (alertas.length ? '<br><span class="envio-alerta">Atenção, confira a prévia: ' + esc(alertas.join(' ')) +
+          ' Veja "Como preparar as fotos".</span>' : '');
     });
   });
 

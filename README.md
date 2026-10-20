@@ -225,7 +225,10 @@ O painel fica em <https://liguefraldasgeriatricas.com.br/admin/> e administra o 
   preço e suspender uma embalagem sem abrir o produto.
 - **Fotos:** enviar pelo computador ou celular (JPG, PNG ou WEBP), escolher a capa, mudar a ordem e ligar uma foto a
   um tamanho e/ou embalagem. O navegador reduz a foto antes de enviar, e o servidor confere que é uma imagem de
-  verdade e a regrava em JPEG (até 1600 px).
+  verdade e a regrava em JPEG (até 1600 px). O site mostra cada foto **inteira** dentro de um quadrado, em qualquer
+  proporção. Para o pacote aparecer grande e legível: pacote inteiro e de frente, fundo claro, recorte perto do
+  pacote, formato quadrado ou próximo disso e pelo menos 800 px no lado menor. O guia **Como preparar as fotos**, no
+  editor do painel, repete essas regras, e o painel avisa ao enviar uma foto pequena ou muito comprida.
 - **Categorias:** criar, renomear, reordenar e apagar. Uma categoria só é apagada quando nenhum produto a usa.
 - **Lixeira:** excluir manda o produto para a lixeira, de onde ele pode ser restaurado ou excluído de vez.
 - **Histórico:** antes de cada alteração, o painel guarda uma cópia do catálogo (as 50 mais recentes). Dá para voltar
