@@ -92,7 +92,9 @@ const http = require('node:http');
     assert.match(await page.locator('[data-imagem-principal] img').getAttribute('src'), /higifral-confort\.jpg$/);
     for (const [id, preco] of [['protetor-aro-incofral-basic-m', '25,90'], ['protetor-aro-incofral-basic-g', '32,90']]) {
       await ir('/produto.html?id=' + id);
-      assert.equal(await page.locator('input[data-grupo="Tamanho"]').count(), 0);
+      // Tamanho único continua visível, já marcado, para o cliente saber o que leva.
+      assert.equal(await page.locator('input[data-grupo="Tamanho"]').count(), 1);
+      assert.equal(await page.locator('input[data-grupo="Tamanho"]').isChecked(), true);
       assert.match(await page.locator('[data-produto]').innerText(), /10 unidades/);
       assert.ok((await page.locator('[data-preco]').innerText()).includes(preco));
     }
