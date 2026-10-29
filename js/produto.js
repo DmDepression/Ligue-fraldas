@@ -48,7 +48,8 @@
             '<h1 class="produto__nome">' + esc(p.nome) + '</h1>' +
             (p.marca ? '<p class="produto__marca">Marca: <strong>' + esc(p.marca) + '</strong></p>' : '') +
             descricao(p.descricao) +
-            (p.precoCentavos ? '<p class="produto-preco produto-preco--grande" data-preco>' + textoPreco(p) + '</p>' : '') +
+            (p.precoCentavos ? '<p class="produto-preco produto-preco--grande" data-preco>' + textoPreco(p) + '</p>'
+              : L.foraDeEstoque(p) ? '<p class="produto-preco produto-preco--grande produto-preco--fora">' + L.TEXTO_FORA_DE_ESTOQUE + '</p>' : '') +
             opcoes(p) +
             '<div class="produto__cta">' +
               (p.precoCentavos ? '<button type="button" class="btn btn--primario btn--grande btn--bloco" data-produto-adicionar>' +
@@ -124,25 +125,37 @@
     }
 
     // Tamanhos e variações viram opções clicáveis; o que for escolhido entra na mensagem do WhatsApp.
+    // `fora` marca as opções fora de estoque: aparecem, mas não podem ser escolhidas.
     function gruposDeOpcoes(p) {
       var grupos = [];
-      if (p.tamanhos.length) grupos.push({ nome: 'Tamanho', opcoes: p.tamanhos });
-      if (p.embalagens.length) {
+      if (p.todosTamanhos.length) {
+        grupos.push({
+          nome: 'Tamanho',
+          opcoes: p.todosTamanhos,
+          fora: p.todosTamanhos.map(function (t) { return p.tamanhosForaDeEstoque.indexOf(t) !== -1; })
+        });
+      }
+      if (p.todasEmbalagens.length) {
         grupos.push({
           nome: 'Embalagem',
-          embalagens: p.embalagens,
-          opcoes: p.embalagens.map(function (e) { return e.rotulo; })
+          embalagens: p.todasEmbalagens,
+          opcoes: p.todasEmbalagens.map(function (e) { return e.rotulo; }),
+          fora: p.todasEmbalagens.map(function (e) { return !e.disponivel; })
         });
       }
       return grupos.concat(p.variacoes);
     }
 
-    // Grupo com uma opção só também aparece, já marcado: o cliente precisa ver o tamanho
-    // e a embalagem que está levando (ex.: só P/M ativo), mesmo sem ter o que escolher.
+    function disponiveisNoGrupo(g) {
+      return g.opcoes.filter(function (o, i) { return !(g.fora && g.fora[i]); });
+    }
+
+    // Grupo com uma opção disponível só também aparece, já marcado: o cliente precisa ver o
+    // tamanho e a embalagem que está levando (ex.: só P/M em estoque), mesmo sem ter o que escolher.
     function opcoes(p) {
       var grupos = gruposDeOpcoes(p);
       if (!grupos.length) return '';
-      var gruposComEscolha = grupos.filter(function (g) { return g.opcoes.length > 1; });
+      var gruposComEscolha = grupos.filter(function (g) { return disponiveisNoGrupo(g).length > 1; });
       var escolherTamanho = gruposComEscolha.some(function (g) { return g.nome === 'Tamanho'; });
       var escolherEmbalagem = gruposComEscolha.some(function (g) { return g.nome === 'Embalagem'; });
       var dica = !gruposComEscolha.length ? '' : escolherTamanho && escolherEmbalagem
@@ -155,15 +168,17 @@
 
       return '<form class="produto__opcoes" data-opcoes>' +
         grupos.map(function (g, gi) {
-          var unica = g.opcoes.length === 1;
+          var unica = disponiveisNoGrupo(g).length === 1;
           return '<fieldset class="opcoes">' +
             '<legend class="opcoes__titulo">' + esc(g.nome) + '</legend>' +
             '<div class="opcoes__lista">' + g.opcoes.map(function (o, oi) {
               var e = g.embalagens && g.embalagens[oi];
-              return '<label class="opcao"><input type="radio" name="opcao-' + gi + '" value="' + esc(e ? e.id : o) + '"' +
+              var fora = !!(g.fora && g.fora[oi]);
+              return '<label class="opcao' + (fora ? ' opcao--fora' : '') + '"><input type="radio" name="opcao-' + gi + '" value="' + esc(e ? e.id : o) + '"' +
                 ' data-grupo="' + esc(g.nome) + '" data-rotulo="' + esc(o) + '"' +
-                (e ? ' data-tamanhos="' + esc(e.tamanhos.join('|')) + '"' : '') + (unica ? ' checked' : '') + '>' +
-                '<span>' + esc(o) + '</span></label>';
+                (e ? ' data-tamanhos="' + esc(e.tamanhos.join('|')) + '"' : '') +
+                (fora ? ' data-fora disabled' : unica ? ' checked' : '') + '>' +
+                '<span>' + esc(o) + (fora ? '<small class="opcao__fora">' + L.TEXTO_FORA_DE_ESTOQUE + '</small>' : '') + '</span></label>';
             }).join('') + '</div></fieldset>';
         }).join('') +
         (dica ? '<p class="produto__dica">' + dica + '</p>' : '') +
@@ -210,16 +225,18 @@
 
     // Mostra só as embalagens que existem para o tamanho escolhido e atualiza o preço.
     function ajustarEmbalagens(p, form) {
-      if (!form || !p.embalagens.length) return;
+      if (!form || !p.todasEmbalagens.length) return;
       var tamanhoMarcado = form.querySelector('input[data-grupo="Tamanho"]:checked');
       var tamanho = tamanhoMarcado ? tamanhoMarcado.value : (p.tamanhos.length === 1 ? p.tamanhos[0] : '');
       var radios = Array.from(form.querySelectorAll('input[data-grupo="Embalagem"]'));
       radios.forEach(function (r) {
         var permitidos = r.getAttribute('data-tamanhos');
-        var ok = !permitidos || (tamanho && permitidos.split('|').indexOf(tamanho) !== -1);
+        var existe = !permitidos || (tamanho && permitidos.split('|').indexOf(tamanho) !== -1);
+        // Fora de estoque continua visível (e desativada) se existir no tamanho escolhido.
+        var ok = existe && !r.hasAttribute('data-fora');
         r.disabled = !ok;
-        r.closest('.opcao').hidden = !ok && !!tamanhoMarcado;
-        r.closest('.opcao').classList.toggle('opcao--indisponivel', !ok);
+        r.closest('.opcao').hidden = !existe && !!tamanhoMarcado;
+        r.closest('.opcao').classList.toggle('opcao--indisponivel', !existe);
         if (!ok && r.checked) r.checked = false;
       });
       var disponiveis = radios.filter(function (r) { return !r.disabled; });
@@ -241,7 +258,10 @@
         var tamanhoMarcado = form && form.querySelector('input[data-grupo="Tamanho"]:checked');
         var tamanho = tamanhoMarcado ? tamanhoMarcado.value : (p.tamanhos.length === 1 ? p.tamanhos[0] : '');
         var embalagemMarcada = form && form.querySelector('input[data-grupo="Embalagem"]:checked');
-        selecionarImagem(p, imagemDasOpcoes(p, tamanho, embalagemMarcada ? embalagemMarcada.value : ''));
+        // Sem foto própria da escolha, volta para a capa: a foto do tamanho anterior
+        // não pode ficar na tela mostrando outro pacote.
+        var indice = imagemDasOpcoes(p, tamanho, embalagemMarcada ? embalagemMarcada.value : '');
+        selecionarImagem(p, indice !== -1 ? indice : p.imagens.indexOf(L.fotoCapa(p)));
         var link = L.linkWhatsApp(L.mensagemProduto(p, escolhas));
         document.querySelectorAll('[data-produto-whatsapp]').forEach(function (a) { a.href = link; });
         L.definirWhatsAppFlutuante(L.mensagemProduto(p, escolhas));

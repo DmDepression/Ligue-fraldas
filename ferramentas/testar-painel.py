@@ -9,6 +9,9 @@ import json, os, sys, uuid, urllib.request, urllib.error, http.cookiejar
 
 BASE = 'http://127.0.0.1:8090/admin/'
 SITEMAP = 'http://127.0.0.1:8090/sitemap.php'
+PEDIDO = 'http://127.0.0.1:8090/pedido.php'
+# O workflow faz o pedido.php gravar o e-mail neste arquivo em vez de enviar (variável LIGUE_PEDIDO_ARQUIVO_TESTE).
+ARQUIVO_EMAILS = os.environ.get('LIGUE_PEDIDO_ARQUIVO_TESTE', '')
 SITE = sys.argv[1]  # pasta da cópia de teste
 # Quantidades do catálogo versionado: o teste não quebra quando produtos entram ou saem.
 TOTAL_PRODUTOS = len(json.load(open(os.path.join(SITE, 'data/produtos.json'), encoding='utf-8')))
@@ -236,7 +239,67 @@ ok(st == 200 and len(r['produtos']) == TOTAL_PRODUTOS + 1, 'restaurou a primeira
 st, r = api('restaurarVersao', {'versao': v, 'arquivo': '../../data/produtos.json'})
 ok(st == 422, 'nome de arquivo malicioso no histórico é recusado')
 
-print('12. Exportar e sair')
+print('12. Fora de estoque e pedido por e-mail')
+def pedido(dados, origem=None):
+    h = {'Content-Type': 'application/json'}
+    if origem:
+        h['Origin'] = origem
+    st, txt = req(PEDIDO, json.dumps(dados).encode(), h)
+    try:
+        return st, json.loads(txt)
+    except Exception:
+        return st, {'_bruto': txt[:300]}
+def emails():
+    if not ARQUIVO_EMAILS or not os.path.exists(ARQUIVO_EMAILS):
+        return []
+    return [json.loads(l) for l in open(ARQUIVO_EMAILS, encoding='utf-8') if l.strip()]
+st, loja = api('carregar'); v = loja['versao']
+hig = next(x for x in loja['produtos'] if x['id'] == 'higifral-confort')
+t1, t2 = hig['tamanho'][0], hig['tamanho'][1]
+preco = hig['precoCentavos']
+base = {'numero': 'LF-261029-AB2C', 'nome': 'Cliente  Teste', 'telefone': '(21) 99999-0000', 'email': 'cliente@exemplo.com', 'site': ''}
+item = lambda t, q=2: [{'id': 'higifral-confort', 'tamanho': t, 'embalagem': '', 'quantidade': q, 'precoCentavos': 1}]
+ok(bool(ARQUIVO_EMAILS), 'LIGUE_PEDIDO_ARQUIVO_TESTE definido (e-mails de teste vão para arquivo)')
+st, r = pedido(dict(base, itens=item(t1)))
+ok(st == 200 and r.get('totalCentavos') == preco * 2, 'pedido válido usa o preço do catálogo, não o do navegador: %s' % r)
+ultimo = (emails() or [{}])[-1]
+ok(ultimo.get('para') == 'liguefraldasgeriatricas@gmail.com' and 'Pedido nº LF-261029-AB2C' in ultimo.get('corpo', '')
+   and 'Cliente: Cliente Teste' in ultimo.get('corpo', '') and 'Reply-To: cliente@exemplo.com' in ultimo.get('cabecalhos', []),
+   'e-mail vai para a loja com número do pedido, cliente e resposta para o cliente')
+st, r = pedido(dict(base, numero='123', itens=item(t1)))
+ok(st == 422, 'número de pedido inválido é recusado')
+st, r = pedido(dict(base, telefone='123', itens=item(t1)))
+ok(st == 422 and 'telefone' in r.get('erro', ''), 'telefone sem DDD é recusado')
+st, r = pedido(dict(base, email='nao-e-email', itens=item(t1)))
+ok(st == 422, 'e-mail inválido é recusado')
+antes = len(emails())
+st, r = pedido(dict(base, site='http://spam.example', itens=item(t1)))
+ok(st == 200 and len(emails()) == antes, 'robô que preenche o campo-isca recebe ok e nada é enviado')
+st, r = pedido(dict(base, itens=item(t1)), origem='https://outro-site.example')
+ok(st == 403, 'pedido vindo de outro site é recusado')
+produto_hig = {'nome': hig['nome'], 'categoria': hig['categoria'], 'marca': hig.get('marca', ''), 'descricao': hig['descricao'],
+               'tamanhos': hig['tamanho'], 'precoCentavos': preco, 'imagens': hig['imagens'],
+               'fotosPorOpcao': hig.get('fotosPorOpcao', []), 'informacoes': hig.get('informacoes', []),
+               'tamanhosForaDeEstoque': [t1, 'tamanho-que-nao-existe']}
+st, r = api('salvarProduto', {'versao': v, 'id': 'higifral-confort', 'produto': produto_hig})
+ok(st == 200 and r['produto'].get('tamanhosForaDeEstoque') == [t1], 'tamanho marcado fora de estoque é salvo (e o inexistente, ignorado)')
+v = r['versao']
+st, r = pedido(dict(base, itens=item(t1)))
+ok(st == 409 and hig['nome'] in r.get('erro', ''), 'pedido com tamanho fora de estoque é recusado')
+st, r = api('alternarAtivo', {'versao': v, 'id': 'bigfral-dermaplus', 'embalagem': 'pacote-menor', 'ativo': False}); v = r['versao']
+st, r = pedido(dict(base, itens=[{'id': 'bigfral-dermaplus', 'tamanho': 'XG', 'embalagem': 'pacote-menor', 'quantidade': 1}]))
+ok(st == 409, 'pedido com embalagem fora de estoque é recusado')
+st, r = api('alternarAtivo', {'versao': v, 'id': 'bigfral-dermaplus', 'embalagem': 'pacote-menor', 'ativo': True}); v = r['versao']
+# Já houve 1 pedido válido; com mais 4, chega ao limite de 5 em 10 minutos.
+for i in range(4):
+    st, r = pedido(dict(base, itens=item(t2, 1)))
+ok(st == 200, 'pedidos válidos dentro do limite são enviados')
+st, r = pedido(dict(base, itens=item(t2, 1)))
+ok(st == 429, 'o sexto pedido em 10 minutos do mesmo IP é freado')
+st, r = api('salvarProduto', {'versao': v, 'id': 'higifral-confort', 'produto': dict(produto_hig, tamanhosForaDeEstoque=[])})
+ok(st == 200 and 'tamanhosForaDeEstoque' not in r['produto'], 'tamanho volta ao estoque'); v = r['versao']
+
+print('13. Exportar e sair')
 st, txt = req(BASE + 'api.php?acao=exportar')
 ok(st == 200 and json.loads(txt)['versao'] == v, 'exportar devolve o catálogo atual')
 st, r = api('logout')

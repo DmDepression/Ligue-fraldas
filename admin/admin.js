@@ -203,6 +203,13 @@
       '<span class="etiqueta ' + (ativo ? 'etiqueta--ok' : 'etiqueta--off') + '">' + (ativo ? 'Ativo' : 'Suspenso') + '</span>';
   }
 
+  // Embalagem desligada não some do site: aparece como "Fora de estoque".
+  function botaoEstoque(emEstoque) {
+    return '<button type="button" class="btn btn--sm ' + (emEstoque ? 'btn--contorno' : 'btn--alerta') + '" data-alternar>' +
+      (emEstoque ? 'Marcar fora de estoque' : 'Voltar ao estoque') + '</button>' +
+      '<span class="etiqueta ' + (emEstoque ? 'etiqueta--ok' : 'etiqueta--off') + '">' + (emEstoque ? 'Em estoque' : 'Fora de estoque') + '</span>';
+  }
+
   function desenharProdutos() {
     var lista = filtrados();
     var suspensos = loja.produtos.filter(function (p) { return p.ativo === false; }).length;
@@ -226,7 +233,7 @@
           '<td data-rotulo="Embalagem" class="emb__nome">↳ ' + esc(e.rotulo) +
             (e.tamanhos && e.tamanhos.length ? ' <small>(' + esc(e.tamanhos.map(codigoTamanho).join(', ')) + ')</small>' : '') + '</td><td></td>' +
           '<td data-rotulo="Preço">' + formPreco(e.precoCentavos, p.nome + ' — ' + e.rotulo) + '</td>' +
-          '<td data-rotulo="Situação">' + botaoSituacao(embAtiva) + '</td>' +
+          '<td data-rotulo="Estoque">' + botaoEstoque(embAtiva) + '</td>' +
           '<td data-rotulo="Capa"><label class="marcar" title="O card do site mostra o preço e a foto desta embalagem">' +
             '<input type="checkbox" data-capa' + (p.embalagemCapa === e.id ? ' checked' : '') + '> Capa</label></td></tr>';
       }).join('');
@@ -276,10 +283,14 @@
         .catch(function (err) { aviso(err.message, true); desenharProdutos(); });
     } else if (ev.target.closest('[data-alternar]')) {
       var novo = a.item.ativo === false;
-      if (!novo && !confirm('Suspender "' + a.nome + '"? ' + (a.e ? 'Essa embalagem' : 'Ele') + ' some do site até ser reativado.')) return;
+      if (!novo && !confirm(a.e
+        ? 'Marcar "' + a.nome + '" como fora de estoque? Ela continua aparecendo no site, mas o cliente não consegue escolher.'
+        : 'Suspender "' + a.nome + '"? Ele some do site até ser reativado.')) return;
       ev.target.disabled = true;
       alterar('alternarAtivo', { id: a.p.id, embalagem: a.e ? a.e.id : undefined, ativo: novo })
-        .then(function () { aviso('"' + a.nome + '" ' + (novo ? 'reativado.' : 'suspenso.')); })
+        .then(function () {
+          aviso('"' + a.nome + '" ' + (a.e ? (novo ? 'voltou ao estoque.' : 'marcada como fora de estoque.') : (novo ? 'reativado.' : 'suspenso.')));
+        })
         .catch(function (err) { aviso(err.message, true); ev.target.disabled = false; });
     }
   });
@@ -299,7 +310,10 @@
   // Converte o produto salvo para o modelo do formulário (linhas com chaves estáveis,
   // para que renomear um tamanho não desfaça os vínculos com embalagens e fotos).
   function modeloDoProduto(p) {
-    var tamanhos = (p && p.tamanho && p.tamanho.length ? p.tamanho : ['Único']).map(function (t) { return { k: novaChave(), texto: t }; });
+    var foraDeEstoque = (p && p.tamanhosForaDeEstoque) || [];
+    var tamanhos = (p && p.tamanho && p.tamanho.length ? p.tamanho : ['Único']).map(function (t) {
+      return { k: novaChave(), texto: t, fora: foraDeEstoque.indexOf(t) !== -1 };
+    });
     var chavePorTamanho = function (rotulo) {
       var achado = tamanhos.find(function (t) { return t.texto === rotulo || codigoTamanho(t.texto) === rotulo; });
       return achado ? achado.k : null;
@@ -368,6 +382,7 @@
 
     $('#lista-tamanhos').innerHTML = rascunho.tamanhos.map(function (t, i) {
       return '<li data-k="' + t.k + '"><input data-campo="tamanho" value="' + esc(t.texto) + '" maxlength="60" aria-label="Tamanho ' + (i + 1) + '" placeholder="Ex.: M — 24 unidades">' +
+        '<label class="marcar" title="Continua aparecendo no site, mas o cliente não consegue escolher"><input type="checkbox" data-campo="foraTamanho"' + (t.fora ? ' checked' : '') + '> Fora de estoque</label>' +
         '<button type="button" class="btn btn--sm btn--contorno" data-remover="tamanho" aria-label="Remover tamanho">×</button></li>';
     }).join('');
 
@@ -376,7 +391,7 @@
         '<div class="embalagem__linha">' +
           '<label class="campo">Embalagem<input data-campo="rotulo" value="' + esc(e.rotulo) + '" maxlength="60" placeholder="Ex.: 16 unidades"></label>' +
           '<label class="campo campo--preco">Preço (R$)<input data-campo="precoEmb" inputmode="decimal" value="' + esc(e.preco) + '" placeholder="42,90"></label>' +
-          '<label class="marcar"><input type="checkbox" data-campo="ativoEmb"' + (e.ativo ? ' checked' : '') + '> Ativa</label>' +
+          '<label class="marcar" title="Desmarcada, aparece no site como Fora de estoque"><input type="checkbox" data-campo="ativoEmb"' + (e.ativo ? ' checked' : '') + '> Em estoque</label>' +
           '<label class="marcar" title="O card do site mostra o preço e a foto desta embalagem"><input type="checkbox" data-campo="capaEmb"' + (rascunho.capa === e.k ? ' checked' : '') + '> Capa do anúncio</label>' +
           '<button type="button" class="btn btn--sm btn--contorno" data-remover="embalagem" aria-label="Remover embalagem ' + (i + 1) + '">×</button>' +
         '</div>' +
@@ -423,6 +438,33 @@
           '<button type="button" class="btn btn--sm btn--contorno" data-adicionar="regra">+ vincular a uma opção</button>' +
         '</div></li>';
     }).join('') || '<li class="dica">Nenhuma foto ainda. Todo anúncio precisa de pelo menos uma.</li>';
+    avisarTamanhosSemFoto();
+  }
+
+  // Mesmo código de tamanho que o site usa para achar a foto pelo nome do arquivo ("-p-m.jpg").
+  function codigoArquivo(rotulo) {
+    return norm(codigoTamanho(rotulo)).replace(/\s+/g, '').replace(/\//g, '-');
+  }
+
+  // Foto enviada pelo painel tem nome aleatório: só troca no site se estiver ligada ao tamanho.
+  // Sem isso, ao escolher o tamanho o site mostra a capa (caso da Mais Conforto).
+  function avisarTamanhosSemFoto() {
+    var aviso = $('#aviso-fotos-tamanho');
+    var semFoto = rascunho.imagens.length < 2 || rascunho.tamanhos.length < 2 ? [] : rascunho.tamanhos.filter(function (t) {
+      var ligada = rascunho.imagens.some(function (img) {
+        var nome = norm(img.caminho.split('/').pop().replace(/\.[^.]+$/, ''));
+        return img.regras.some(function (r) {
+          var emb = r.embalagem && rascunho.embalagens.find(function (e) { return e.k === r.embalagem; });
+          return r.tamanho === t.k || (!r.tamanho && emb && emb.tam.length === 1 && emb.tam[0] === t.k);
+        }) || (codigoArquivo(t.texto) && nome.slice(-(codigoArquivo(t.texto).length + 1)) === '-' + codigoArquivo(t.texto));
+      });
+      return t.texto.trim() && !ligada;
+    });
+    aviso.hidden = !semFoto.length;
+    aviso.textContent = semFoto.length
+      ? 'Tamanhos sem foto ligada: ' + semFoto.map(function (t) { return codigoTamanho(t.texto); }).join(', ') +
+        '. Quando o cliente escolher um deles, o site mostra a capa. Se houver foto desse pacote, use "+ vincular a uma opção" embaixo dela.'
+      : '';
   }
 
   // Lê os campos digitados para o modelo (sem redesenhar, para não perder o foco).
@@ -434,6 +476,7 @@
     var li = el.closest('li');
     var campo = el.dataset.campo;
     if (campo === 'tamanho') rascunho.tamanhos.find(function (t) { return t.k === li.dataset.k; }).texto = el.value;
+    if (campo === 'foraTamanho') rascunho.tamanhos.find(function (t) { return t.k === li.dataset.k; }).fora = el.checked;
     var emb = li && li.classList.contains('embalagem') ? rascunho.embalagens.find(function (e) { return e.k === li.dataset.k; }) : null;
     if (emb && campo === 'rotulo') emb.rotulo = el.value;
     if (emb && campo === 'precoEmb') emb.preco = el.value;
@@ -452,6 +495,7 @@
     if (campo === 'regraTam' || campo === 'regraEmb') {
       var regra = rascunho.imagens[el.closest('.foto').dataset.i].regras[el.closest('.regra').dataset.ri];
       regra[campo === 'regraTam' ? 'tamanho' : 'embalagem'] = el.value;
+      avisarTamanhosSemFoto();
     }
     if (el.name === 'modoPreco') {
       rascunho.modoPreco = el.value;
@@ -655,6 +699,7 @@
       imagens: rascunho.imagens.map(function (i) { return i.caminho; }),
       fotosPorOpcao: fotosPorOpcao,
       informacoes: rascunho.informacoes,
+      tamanhosForaDeEstoque: rascunho.tamanhos.filter(function (t) { return t.fora && t.texto.trim(); }).map(function (t) { return t.texto.trim(); }),
       palavrasChave: rascunho.palavrasChave.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
       destaque: rascunho.destaque,
       ativo: rascunho.ativo,

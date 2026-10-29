@@ -3,12 +3,39 @@
   'use strict';
   var L = window.Ligue;
   var CHAVE = 'ligue-fraldas-carrinho-v1';
+  var CHAVE_PEDIDO = 'ligue-fraldas-pedido-v1';
+  var LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem 0/O e 1/I, que se confundem ao ditar
   var itens = [];
   var catalogo;
   var dialogo;
   var aviso;
   var retorno;
   var pronto;
+  var canal = 'whatsapp';
+  var pedidoAtual = null;
+
+  // Número do pedido: o mesmo enquanto o carrinho não muda. Se o cliente mandar o mesmo
+  // carrinho pelo WhatsApp e por e-mail, a loja vê o mesmo número e não separa duas vezes.
+  function numeroPedido() {
+    var assinatura = JSON.stringify(itens);
+    if (!pedidoAtual) {
+      try { pedidoAtual = JSON.parse(localStorage.getItem(CHAVE_PEDIDO) || 'null'); } catch (e) { pedidoAtual = null; }
+    }
+    if (pedidoAtual && pedidoAtual.assinatura === assinatura && /^LF-\d{6}-[A-HJ-NP-Z2-9]{4}$/.test(pedidoAtual.numero)) {
+      return pedidoAtual.numero;
+    }
+    var sorteio = new Uint8Array(4);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(sorteio);
+    else for (var i = 0; i < sorteio.length; i++) sorteio[i] = Math.floor(Math.random() * 256);
+    var d = new Date();
+    var data = String(d.getFullYear()).slice(2) + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+    pedidoAtual = {
+      numero: 'LF-' + data + '-' + Array.from(sorteio, function (n) { return LETRAS[n % LETRAS.length]; }).join(''),
+      assinatura: assinatura
+    };
+    try { localStorage.setItem(CHAVE_PEDIDO, JSON.stringify(pedidoAtual)); } catch (e) { /* vale só nesta página */ }
+    return pedidoAtual.numero;
+  }
 
   function ler() {
     try {
@@ -17,13 +44,16 @@
     } catch (e) { return []; }
   }
 
+  var removidos = 0;
+
   function validar(dados) {
     var validos = [];
+    removidos = 0;
     dados.forEach(function (item) {
       if (!item || typeof item.id !== 'string') return;
       var p = catalogo.porId.get(item.id);
       var d = L.resolverItem(p, item.tamanho, item.embalagem || '');
-      if (!d || !Number.isInteger(item.quantidade) || item.quantidade < 1) return;
+      if (!d || !Number.isInteger(item.quantidade) || item.quantidade < 1) { removidos += 1; return; }
       var existente = validos.find(function (i) { return i.id === item.id && i.tamanho === item.tamanho && i.embalagem === d.embalagem; });
       if (existente) existente.quantidade = Math.min(99, existente.quantidade + item.quantidade);
       else validos.push({ id: item.id, tamanho: item.tamanho, embalagem: d.embalagem, quantidade: Math.min(99, item.quantidade) });
@@ -42,6 +72,10 @@
         catalogo = dados;
         itens = validar(ler());
         renderizar();
+        if (removidos) {
+          aviso.textContent = 'Saiu do seu carrinho o que ficou fora de estoque ou mudou no catálogo. Confira os itens.';
+          salvar();
+        }
       }).catch(function (erro) { pronto = null; throw erro; });
     }
     return pronto;
@@ -54,7 +88,7 @@
   function mensagem() {
     var total = 0;
     var nome = dialogo.querySelector('[data-carrinho-nome]').value.trim().replace(/\s+/g, ' ');
-    var linhas = ['Oi, me chamo ' + nome + '! Gostaria dos seguintes itens:', ''];
+    var linhas = ['Oi, me chamo ' + nome + '! Gostaria dos seguintes itens:', 'Pedido nº ' + numeroPedido(), ''];
     itens.forEach(function (item) {
       var p = catalogo.porId.get(item.id);
       var d = detalhe(item);
@@ -91,7 +125,69 @@
     dialogo.querySelector('[data-carrinho-vazio]').hidden = itens.length > 0;
     dialogo.querySelector('[data-carrinho-total]').textContent = L.moeda(total);
     dialogo.querySelector('[data-carrinho-pedido]').hidden = !itens.length;
+    dialogo.querySelector('[data-carrinho-numero]').textContent = itens.length ? numeroPedido() : '';
     dialogo.querySelector('[data-carrinho-mensagem]').value = itens.length ? mensagem() : '';
+    if (itens.length) dialogo.querySelector('[data-carrinho-enviado]').hidden = true;
+  }
+
+  // WhatsApp abre a conversa com o pedido escrito; e-mail é enviado pelo site (pedido.php).
+  function escolherCanal(novo) {
+    canal = novo;
+    dialogo.querySelectorAll('[data-canal]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.canal === canal)); });
+    var porEmail = canal === 'email';
+    dialogo.querySelector('[data-campos-email]').hidden = !porEmail;
+    // Desativados no WhatsApp: um e-mail mal digitado escondido não pode travar o envio.
+    var telefone = dialogo.querySelector('[data-carrinho-telefone]');
+    telefone.required = porEmail;
+    telefone.disabled = !porEmail;
+    dialogo.querySelector('[data-carrinho-email]').disabled = !porEmail;
+    var botao = dialogo.querySelector('[data-carrinho-finalizar]');
+    botao.classList.toggle('btn--wa', !porEmail);
+    botao.classList.toggle('btn--primario', porEmail);
+    botao.querySelector('use').setAttribute('href', porEmail ? '#i-email' : '#i-whatsapp');
+    botao.querySelector('span').textContent = porEmail ? 'Enviar pedido por e-mail' : 'Finalizar pelo WhatsApp';
+  }
+
+  function validarTelefone(campo) {
+    var digitos = campo.value.replace(/\D/g, '').length;
+    campo.setCustomValidity(digitos >= 10 && digitos <= 13 ? '' : 'Informe o telefone com DDD, por exemplo (21) 99999-9999.');
+  }
+
+  function enviarPorEmail() {
+    var botao = dialogo.querySelector('[data-carrinho-finalizar]');
+    var telefone = dialogo.querySelector('[data-carrinho-telefone]').value.trim();
+    var numero = numeroPedido();
+    botao.disabled = true;
+    aviso.textContent = 'Enviando o pedido ' + numero + '…';
+    fetch('pedido.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        numero: numero,
+        nome: dialogo.querySelector('[data-carrinho-nome]').value,
+        telefone: telefone,
+        email: dialogo.querySelector('[data-carrinho-email]').value.trim(),
+        site: dialogo.querySelector('[data-carrinho-isca]').value,
+        itens: itens.map(function (i) { return { id: i.id, tamanho: i.tamanho, embalagem: i.embalagem || '', quantidade: i.quantidade }; })
+      })
+    }).then(function (r) {
+      return r.json().catch(function () { return { erro: 'Resposta inválida do servidor (' + r.status + ').' }; }).then(function (j) {
+        if (!r.ok || !j.ok) throw new Error(j.erro || 'Não foi possível enviar o pedido (' + r.status + ').');
+        return j;
+      });
+    }).then(function (j) {
+      itens = [];
+      salvar();
+      renderizar();
+      aviso.textContent = '';
+      var enviado = dialogo.querySelector('[data-carrinho-enviado]');
+      enviado.innerHTML = '<strong>Pedido ' + L.esc(j.numero) + ' enviado!</strong> A loja recebeu seu pedido por e-mail e vai ' +
+        'falar com você pelo telefone ' + L.esc(telefone) + ' para confirmar disponibilidade, entrega e pagamento.';
+      enviado.hidden = false;
+      enviado.focus();
+    }).catch(function (erro) {
+      aviso.textContent = erro.message + ' Se preferir, escolha WhatsApp e envie por lá.';
+    }).then(function () { botao.disabled = false; });
   }
 
   function abrir() {
@@ -134,22 +230,40 @@
     dialogo.innerHTML = '<div class="carrinho__cabecalho"><h2 id="carrinho-titulo">Seu carrinho</h2>' +
       '<button type="button" class="icone-btn" data-carrinho-fechar aria-label="Fechar carrinho" autofocus>' + L.icone('fechar') + '</button></div>' +
       '<p class="carrinho__aviso" role="status" aria-live="polite" data-carrinho-aviso></p>' +
+      '<div class="carrinho__enviado" role="status" tabindex="-1" data-carrinho-enviado hidden></div>' +
       '<p data-carrinho-vazio>Seu carrinho está vazio. Escolha um produto e seu tamanho para começar.</p>' +
       '<ul class="carrinho__itens" data-carrinho-itens></ul>' +
       '<div class="carrinho__rodape"><p class="carrinho__total">Total dos produtos <strong data-carrinho-total>R$ 0,00</strong></p>' +
-      '<p class="produto__dica">A loja confirma disponibilidade, entrega e pagamento pelo WhatsApp.</p>' +
+      '<p class="produto__dica">A loja confirma disponibilidade, entrega e pagamento depois de receber o pedido.</p>' +
+      // Só o campo "text" tem name: é o único que vai no endereço do WhatsApp (nada de telefone ou e-mail na URL).
       '<form class="carrinho__pedido" data-carrinho-pedido action="https://wa.me/' + L.esc(window.LIGUE_CONFIG.whatsapp.numero) + '" method="get" target="_blank" rel="noopener" hidden>' +
+      '<p class="carrinho__numero">Pedido nº <strong data-carrinho-numero></strong></p>' +
       '<label for="carrinho-nome">Seu nome</label>' +
       '<input id="carrinho-nome" type="text" data-carrinho-nome autocomplete="name" placeholder="Como podemos chamar você?" maxlength="80" required aria-describedby="carrinho-nome-dica">' +
-      '<p class="produto__dica" id="carrinho-nome-dica">Seu nome vai junto com o pedido na mensagem do WhatsApp.</p>' +
+      '<p class="produto__dica" id="carrinho-nome-dica">Seu nome vai junto com o pedido.</p>' +
+      '<div class="carrinho__canais" role="group" aria-labelledby="carrinho-canais-titulo">' +
+        '<span id="carrinho-canais-titulo">Enviar o pedido por</span>' +
+        '<button type="button" class="carrinho__canal" data-canal="whatsapp" aria-pressed="true">' + L.icone('whatsapp') + 'WhatsApp</button>' +
+        '<button type="button" class="carrinho__canal" data-canal="email" aria-pressed="false">' + L.icone('email') + 'E-mail</button>' +
+      '</div>' +
+      '<div class="carrinho__campos-email" data-campos-email hidden>' +
+        '<label for="carrinho-telefone">Telefone ou WhatsApp</label>' +
+        '<input id="carrinho-telefone" type="tel" data-carrinho-telefone autocomplete="tel" inputmode="tel" maxlength="20" placeholder="(21) 99999-9999" aria-describedby="carrinho-email-dica" disabled>' +
+        '<label for="carrinho-email">Seu e-mail <small>(opcional)</small></label>' +
+        '<input id="carrinho-email" type="email" data-carrinho-email autocomplete="email" maxlength="120" placeholder="voce@exemplo.com" disabled>' +
+        '<p class="produto__dica" id="carrinho-email-dica">O pedido vai para o e-mail da loja, que fala com você pelo telefone informado.</p>' +
+      '</div>' +
+      '<input class="carrinho__isca" type="text" data-carrinho-isca tabindex="-1" autocomplete="off" aria-hidden="true">' +
       '<input type="hidden" name="text" data-carrinho-mensagem>' +
-      '<button type="submit" class="btn btn--wa btn--bloco" data-carrinho-finalizar>' + L.icone('whatsapp') + 'Finalizar pelo WhatsApp</button></form>' +
+      '<button type="submit" class="btn btn--wa btn--bloco" data-carrinho-finalizar>' + L.icone('whatsapp') + '<span>Finalizar pelo WhatsApp</span></button></form>' +
       '<button type="button" class="btn btn--contorno btn--bloco" data-carrinho-fechar>Continuar comprando</button></div>';
     document.body.appendChild(dialogo);
     aviso = dialogo.querySelector('[data-carrinho-aviso]');
     document.addEventListener('click', function (e) {
       if (e.target.closest('[data-carrinho-abrir]')) abrir();
       if (e.target.closest('[data-carrinho-fechar]')) dialogo.close();
+      var botaoCanal = e.target.closest('[data-canal]');
+      if (botaoCanal) escolherCanal(botaoCanal.dataset.canal);
       var remover = e.target.closest('[data-remover]');
       if (remover) {
         var indice = Number(remover.dataset.remover);
@@ -167,6 +281,7 @@
       if (retorno && retorno.isConnected) retorno.focus();
     });
     dialogo.addEventListener('input', function (e) {
+      if (e.target.matches('[data-carrinho-telefone]')) { validarTelefone(e.target); return; }
       if (!e.target.matches('[data-carrinho-nome]')) return;
       e.target.setCustomValidity(e.target.value.trim() ? '' : 'Informe seu nome para continuar.');
       dialogo.querySelector('[data-carrinho-mensagem]').value = itens.length ? mensagem() : '';
@@ -191,6 +306,12 @@
         var nome = dialogo.querySelector('[data-carrinho-nome]');
         nome.value = nome.value.trim().replace(/\s+/g, ' ');
         nome.setCustomValidity(nome.value ? '' : 'Informe seu nome para continuar.');
+        if (canal === 'email') {
+          e.preventDefault();
+          validarTelefone(dialogo.querySelector('[data-carrinho-telefone]'));
+          if (itens.length && e.target.reportValidity()) enviarPorEmail();
+          return;
+        }
         if (!itens.length || !e.target.reportValidity()) {
           e.preventDefault();
           return;
