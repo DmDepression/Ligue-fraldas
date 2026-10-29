@@ -35,7 +35,11 @@ const http = require('node:http');
     const erros = [];
     page.on('pageerror', e => erros.push(e.message));
     await page.route('**/*', route => route.request().url().startsWith(base) ? route.continue() : route.abort());
-    const ir = async url => { await page.goto(base + url); await page.waitForFunction(() => !!window.Ligue && !!document.querySelector('#carrinho')); };
+    // Espera também o catálogo terminar de montar a página (aria-busy), para não contar elementos cedo demais.
+    const ir = async url => {
+      await page.goto(base + url);
+      await page.waitForFunction(() => !!window.Ligue && !!document.querySelector('#carrinho') && !document.querySelector('[aria-busy="true"]'));
+    };
     const fechar = async () => { await page.locator('[data-carrinho-fechar]').first().click(); };
     const total = async esperado => assert.equal((await page.locator('[data-carrinho-total]').innerText()).replace(/\s/g, ' '), esperado);
     const adicionar = async (id, tamanho) => {
@@ -173,12 +177,17 @@ const http = require('node:http');
     assert.equal(link.pathname, '/5521998928742');
     const msg = await page.locator('[data-carrinho-mensagem]').inputValue();
     assert.ok(msg.startsWith("Oi, me chamo Ana D'Ávila & João! Gostaria dos seguintes itens:"));
+    // Número do pedido na mensagem e no carrinho, estável enquanto o carrinho não muda.
+    const numero = (msg.match(/Pedido nº (LF-\d{6}-[A-HJ-NP-Z2-9]{4})/) || [])[1];
+    assert.ok(numero, 'número do pedido na mensagem');
+    assert.equal(await page.locator('[data-carrinho-numero]').innerText(), numero);
     for (const trecho of ['Higifral Confort', 'Tena Slip Noturna', 'Vida Nova Confort', 'M — 24 unidades', 'EG — 24 unidades', 'XG', 'Econômica — 26 unidades', '2 pacotes', '279,60', 'Por gentileza.']) assert.ok(msg.includes(trecho), trecho);
     await fs.writeFile(path.join(saida, 'mensagem-whatsapp.txt'), msg);
     // Intercepta a navegação: testa a URL sem entrar em contato com o WhatsApp.
     await page.context().route('https://wa.me/**', route => route.fulfill({ contentType: 'text/html', body: 'Pedido de teste' }));
     const [popup] = await Promise.all([page.waitForEvent('popup'), page.locator('[data-carrinho-finalizar]').click()]);
-    await popup.waitForLoadState('domcontentloaded');
+    // A janela nasce em branco (rel="noopener") e só depois vai para o WhatsApp.
+    await popup.waitForURL(url => url.hostname === 'wa.me');
     const destino = new URL(popup.url());
     assert.equal(destino.origin + destino.pathname, 'https://wa.me/5521998928742');
     assert.equal(destino.searchParams.get('text').replace(/\r\n/g, '\n'), msg);

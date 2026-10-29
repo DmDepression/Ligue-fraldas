@@ -174,8 +174,17 @@ Com Node, Playwright e Chrome disponíveis, `node ferramentas/testar-carrinho.cj
 Dicas:
 - **Carrinho:** permite 1 a 99 pacotes por opção, calcula em centavos e salva no navegador apenas produto, tamanho,
   embalagem e quantidade. Ao recarregar, preços e opções são conferidos no catálogo atual.
-- **Finalização:** o cliente informa seu nome no carrinho e abre o WhatsApp com itens, tamanho, embalagem,
-  quantidades, subtotais e total. A loja confirma disponibilidade, entrega e pagamento. Não há e-mail configurado.
+- **Finalização:** o cliente informa seu nome e escolhe como enviar o pedido:
+  - **WhatsApp:** abre a conversa com itens, tamanho, embalagem, quantidades, subtotais e total.
+  - **E-mail:** informa também o telefone (e, se quiser, o e-mail) e o site manda o pedido para
+    `liguefraldasgeriatricas@gmail.com` (`pedido.php`, constantes `EMAIL_LOJA` e `EMAIL_REMETENTE`). O servidor confere
+    preço e estoque no catálogo atual, tem campo-isca contra robôs e limita 5 pedidos a cada 10 minutos por IP.
+
+  Todo pedido tem um número (`LF-AAMMDD-XXXX`), o mesmo nos dois caminhos enquanto o carrinho não muda: se o cliente
+  mandar pelo WhatsApp e por e-mail, a loja vê que é o mesmo pedido. A loja confirma disponibilidade, entrega e
+  pagamento. Os primeiros e-mails podem cair no spam do Gmail: marque "Não é spam".
+- **Fora de estoque:** tamanho marcado "Fora de estoque" no editor do painel, ou embalagem desmarcada em "Em estoque",
+  continua aparecendo no site, riscado e sem poder ser escolhido. Produto suspenso continua sumindo do site.
 - **Fotos:** fundo branco, em `img/produtos/`.
 
 ### Categorias

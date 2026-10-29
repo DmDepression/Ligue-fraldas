@@ -33,8 +33,10 @@ jobs:
           # O teste cria credenciais e produtos: roda numa cópia descartável do site.
           site="$RUNNER_TEMP/site"
           mkdir -p "$site"
-          cp -R admin css data img js index.html catalogo.html produto.html sitemap.php "$site/"
+          cp -R admin css data img js index.html catalogo.html produto.html sitemap.php pedido.php "$site/"
           rm -f "$site/data/loja.json" "$site/admin/.dados/credenciais.php"
+          # Pedidos por e-mail vão para um arquivo, sem sair pela internet.
+          export LIGUE_PEDIDO_ARQUIVO_TESTE="$RUNNER_TEMP/emails-pedido.jsonl"
           php -S 127.0.0.1:8090 -t "$site" > "$RUNNER_TEMP/php.log" 2>&1 &
           for i in $(seq 1 20); do curl -s -o /dev/null http://127.0.0.1:8090/ && break; sleep 0.5; done
           python3 ferramentas/testar-painel.py "$site"

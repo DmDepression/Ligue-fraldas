@@ -322,6 +322,15 @@ function produto_do_formulario(array $entrada, array $loja, ?string $idExistente
         $erros[] = 'Há dois tamanhos com a mesma letra/código.';
     }
 
+    // Tamanhos fora de estoque: continuam no site, sem poder ser escolhidos.
+    $tamanhosFora = [];
+    foreach (is_array($entrada['tamanhosForaDeEstoque'] ?? null) ? $entrada['tamanhosForaDeEstoque'] : [] as $t) {
+        $t = texto_limpo($t, 60);
+        if (in_array($t, $tamanhos, true) && !in_array($t, $tamanhosFora, true)) {
+            $tamanhosFora[] = $t;
+        }
+    }
+
     $preco = fn($v) => is_int($v) && $v >= 1 && $v <= 99999999;
 
     // Embalagens: pacotes com preço próprio. Sem embalagens, um preço para o produto todo.
@@ -473,6 +482,9 @@ function produto_do_formulario(array $entrada, array $loja, ?string $idExistente
         'descricao' => $descricao,
         'tamanho' => $tamanhos,
     ];
+    if ($tamanhosFora) {
+        $produto['tamanhosForaDeEstoque'] = $tamanhosFora;
+    }
     if ($embalagens) {
         $produto['embalagens'] = $embalagens;
         // Embalagem de capa: o card do site mostra o preço e a foto dela.

@@ -159,28 +159,38 @@
       return { tamanho: tamanho, embalagem: embalagem, imagem: imagem };
     }).filter(Boolean);
 
+    // Tamanhos marcados "fora de estoque" no painel continuam na página, mas não podem ser escolhidos.
+    var todosTamanhos = lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean);
+    var marcadosFora = lista(bruto.tamanhosForaDeEstoque).map(texto);
+    var emEstoque = todosTamanhos.filter(function (t) { return marcadosFora.indexOf(t) === -1; });
+
     // Embalagens: mesmo produto vendido em pacotes com quantidades (e preços) diferentes.
     // [{ id, rotulo, precoCentavos, tamanhos?: ['G'], ativo?: false }]
-    var embalagens = lista(bruto.embalagens).map(function (e) {
-      if (!e || typeof e !== 'object' || e.ativo === false) return null;
+    // Suspensa no painel (ativo: false), ou só de tamanhos fora de estoque, aparece como "Fora de estoque".
+    var todasEmbalagens = lista(bruto.embalagens).map(function (e) {
+      if (!e || typeof e !== 'object') return null;
       var eid = texto(e.id);
       var rotulo = texto(e.rotulo);
       if (!eid || !rotulo || !Number.isSafeInteger(e.precoCentavos) || e.precoCentavos <= 0) return null;
-      return { id: eid, rotulo: rotulo, precoCentavos: e.precoCentavos, tamanhos: lista(e.tamanhos).map(texto).filter(Boolean) };
+      var tamanhosEmb = lista(e.tamanhos).map(texto).filter(Boolean);
+      var temTamanho = !todosTamanhos.length || emEstoque.length > 0 && (!tamanhosEmb.length || tamanhosEmb.some(function (t) { return emEstoque.indexOf(t) !== -1; }));
+      return { id: eid, rotulo: rotulo, precoCentavos: e.precoCentavos, tamanhos: tamanhosEmb, disponivel: e.ativo !== false && temTamanho };
     }).filter(Boolean);
+    var embalagens = todasEmbalagens.filter(function (e) { return e.disponivel; });
 
-    var tamanhos = lista(bruto.tamanho != null ? bruto.tamanho : bruto.tamanhos).map(texto).filter(Boolean);
+    var tamanhos = emEstoque;
     var declarouEmbalagens = lista(bruto.embalagens).length > 0;
-    if (embalagens.length) {
-      // Um tamanho cujas embalagens foram todas suspensas no painel deixa de ser oferecido.
+    if (declarouEmbalagens) {
+      // Um tamanho sem nenhuma embalagem disponível também fica fora de estoque.
       tamanhos = tamanhos.filter(function (t) {
         return embalagens.some(function (e) { return !e.tamanhos.length || e.tamanhos.indexOf(t) !== -1; });
       });
     }
+    var tamanhosForaDeEstoque = todosTamanhos.filter(function (t) { return tamanhos.indexOf(t) === -1; });
 
     var preco = Number.isSafeInteger(bruto.precoCentavos) && bruto.precoCentavos > 0 ? bruto.precoCentavos : null;
-    if (declarouEmbalagens && !embalagens.length) {
-      // Todas as embalagens suspensas: não vender sem saber a quantidade do pacote.
+    if ((declarouEmbalagens && !embalagens.length) || (todosTamanhos.length && !tamanhos.length)) {
+      // Tudo fora de estoque: não vender (e, com embalagens, não vender sem saber a quantidade do pacote).
       preco = null;
     } else if (embalagens.length) {
       // Com embalagens, o preço-base é o menor; card e página mostram "a partir de" quando variam.
@@ -197,7 +207,12 @@
       embalagens: embalagens,
       // Embalagem escolhida no painel como capa: o card mostra o preço e a foto dela.
       embalagemCapa: (embalagens.find(function (e) { return e.id === texto(bruto.embalagemCapa); }) || {}).id || '',
+      // `embalagens` e `tamanhos` têm só o que pode ser comprado; as listas "todas"/"todos"
+      // mantêm a ordem do cadastro para mostrar também o que está fora de estoque.
+      todasEmbalagens: todasEmbalagens,
       tamanhos: tamanhos,
+      todosTamanhos: todosTamanhos,
+      tamanhosForaDeEstoque: tamanhosForaDeEstoque,
       variacoes: normalizarVariacoes(bruto.variacoes),
       informacoes: normalizarInformacoes(bruto.informacoes),
       imagens: imagens,
@@ -293,6 +308,13 @@
       return produto;
     });
   }
+
+  L.TEXTO_FORA_DE_ESTOQUE = 'Fora de estoque';
+
+  // Produto que tem tamanhos ou embalagens cadastrados, mas nenhum disponível agora.
+  L.foraDeEstoque = function (p) {
+    return !p.precoCentavos && (p.tamanhosForaDeEstoque.length > 0 || p.todasEmbalagens.length > 0);
+  };
 
   L.embalagemCompativel = function (embalagem, tamanho) {
     return !embalagem.tamanhos.length || embalagem.tamanhos.indexOf(tamanho) !== -1;
@@ -481,14 +503,18 @@
     var categoria = catalogo.categoria(p.categoria);
     var url = L.urlProduto(p.id);
     var precoCard = L.precoDaEscolha(p);
-    var somenteTamanhoUnico = p.tamanhos.length === 1 && L.normalizar(p.tamanhos[0]) === 'unico';
-    var mostrarEmbalagens = somenteTamanhoUnico && p.embalagens.length > 1;
+    var somenteTamanhoUnico = p.todosTamanhos.length === 1 && L.normalizar(p.todosTamanhos[0]) === 'unico';
+    var mostrarEmbalagens = somenteTamanhoUnico && p.todasEmbalagens.length > 1;
+    // Fora de estoque também aparece (riscado), para o cliente saber que o tamanho existe.
     var opcoesResumo = mostrarEmbalagens
-      ? p.embalagens.map(function (e) { return e.rotulo; })
-      : p.tamanhos;
+      ? p.todasEmbalagens.map(function (e) { return { texto: e.rotulo, fora: !e.disponivel }; })
+      : p.todosTamanhos.map(function (t) { return { texto: t, fora: p.tamanhosForaDeEstoque.indexOf(t) !== -1 }; });
     var etiquetas = opcoesResumo.length
       ? '<p class="card__tamanhos"><span class="sr-only">' + (mostrarEmbalagens ? 'Embalagens: ' : 'Tamanhos: ') + '</span>' +
-        opcoesResumo.map(function (opcao) { return '<span class="etiqueta">' + L.esc(opcao) + '</span>'; }).join('') + '</p>'
+        opcoesResumo.map(function (o) {
+          return '<span class="etiqueta' + (o.fora ? ' etiqueta--fora" title="' + L.TEXTO_FORA_DE_ESTOQUE : '') + '">' + L.esc(o.texto) +
+            (o.fora ? '<span class="sr-only"> (' + L.TEXTO_FORA_DE_ESTOQUE.toLowerCase() + ')</span>' : '') + '</span>';
+        }).join('') + '</p>'
       : '';
 
     return '' +
@@ -502,15 +528,18 @@
           '<' + h + ' class="card__nome"><a class="card__link" href="' + url + '">' + L.esc(p.nome) + '</a></' + h + '>' +
           (p.marca ? '<p class="card__marca">' + L.esc(p.marca) + '</p>' : '') +
           etiquetas +
-          (precoCard ? '<p class="produto-preco">' + (precoCard.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(precoCard.centavos) + '<small>por pacote' + (precoCard.embalagem ? ' · ' + L.esc(precoCard.embalagem.rotulo) : '') + '</small></p>' : '') +
+          (precoCard ? '<p class="produto-preco">' + (precoCard.aPartirDe ? '<small>a partir de </small>' : '') + L.moeda(precoCard.centavos) + '<small>por pacote' + (precoCard.embalagem ? ' · ' + L.esc(precoCard.embalagem.rotulo) : '') + '</small></p>'
+            : L.foraDeEstoque(p) ? '<p class="produto-preco produto-preco--fora">' + L.TEXTO_FORA_DE_ESTOQUE + '</p>' : '') +
         '</div>' +
         '<div class="card__acoes">' +
           (p.embalagens.length ? '<a class="btn btn--primario btn--sm btn--bloco" href="' + url + '">' + L.icone('sacola') + '<span>' + (somenteTamanhoUnico ? 'Escolher embalagem' : 'Escolher tamanho e embalagem') + '</span></a>' : '') +
           (p.precoCentavos && !p.embalagens.length ? '<form class="compra-card" data-compra-card="' + L.esc(p.id) + '">' +
-            (p.tamanhos.length > 1
-              ? '<label>Tamanho e embalagem<select name="tamanho" required aria-label="Tamanho e embalagem de ' + L.esc(p.nome) + '">' +
-                '<option value="">Escolha o tamanho</option>' + p.tamanhos.map(function (t) {
-                  return '<option value="' + L.esc(t) + '">' + L.esc(t) + '</option>';
+            (p.todosTamanhos.length > 1
+              ? '<label>Tamanho<select name="tamanho" required aria-label="Tamanho de ' + L.esc(p.nome) + '">' +
+                '<option value="">Escolha o tamanho</option>' + p.todosTamanhos.map(function (t) {
+                  var fora = p.tamanhosForaDeEstoque.indexOf(t) !== -1;
+                  return '<option value="' + L.esc(t) + '"' + (fora ? ' disabled' : '') + '>' + L.esc(t) +
+                    (fora ? ' — ' + L.TEXTO_FORA_DE_ESTOQUE.toLowerCase() : '') + '</option>';
                 }).join('') + '</select></label>'
               : '<input type="hidden" name="tamanho" value="' + L.esc(p.tamanhos[0] || '') + '">') +
             '<button class="btn btn--primario btn--sm btn--bloco" type="submit">' + L.icone('sacola') + '<span>Adicionar ao carrinho</span></button></form>' : '') +
